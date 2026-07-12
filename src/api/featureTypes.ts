@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiGet } from './client';
 
 /** Mirrors the backend's FeatureType model (01-DOCUMENTATION.md §5). */
 export interface FeatureType {
@@ -10,7 +10,5 @@ export interface FeatureType {
 }
 
 export function getFeatureTypes() {
-  return apiClient
-    .get<{ featureTypes: FeatureType[] }>('/feature-types')
-    .then((res) => res.data.featureTypes);
+  return apiGet<{ featureTypes: FeatureType[] }>('/feature-types').then((data) => data.featureTypes);
 }

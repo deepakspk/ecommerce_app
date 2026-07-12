@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import * as authApi from '@/api/auth';
+import { setUnauthorizedHandler } from '@/api/client';
 import { clearToken, getToken, setToken as persistToken } from '@/utils/storage';
 import { User } from '@/types/user';
 
@@ -100,6 +101,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setTokenState(null);
     setUser(null);
   }, []);
+
+  useEffect(() => {
+    // A 401 anywhere in the app means the session is already dead server-side
+    // (no refresh-token endpoint exists) — drop straight back to a logged-out
+    // state rather than leaving the UI on a stale "still logged in" screen.
+    setUnauthorizedHandler(() => {
+      logout();
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [logout]);
 
   const refreshMe = useCallback(async () => {
     const { user: me } = await authApi.getMe();

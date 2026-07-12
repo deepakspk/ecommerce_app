@@ -1,8 +1,8 @@
-import { apiClient } from './client';
+import { apiClient, apiGet } from './client';
 import { CartItem } from '@/types/cart';
 
 export function getCart() {
-  return apiClient.get<{ items: CartItem[] }>('/cart').then((res) => res.data.items);
+  return apiGet<{ items: CartItem[] }>('/cart').then((data) => data.items);
 }
 
 export function addCartItem(variantId: string, quantity = 1) {

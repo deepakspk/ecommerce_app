@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiGet } from './client';
 
 /** Mirrors the backend's CompanySettings singleton (01-DOCUMENTATION.md §5). */
 export interface CompanySettings {
@@ -27,7 +27,5 @@ export interface CompanySettings {
  * (01-DOCUMENTATION.md §2.16) — fall back to `{}` here too so nothing crashes.
  */
 export function getCompanySettings() {
-  return apiClient
-    .get<{ company?: CompanySettings }>('/settings/company')
-    .then((res) => res.data.company ?? {});
+  return apiGet<{ company?: CompanySettings }>('/settings/company').then((data) => data.company ?? {});
 }

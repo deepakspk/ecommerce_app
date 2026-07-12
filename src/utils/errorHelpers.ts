@@ -45,7 +45,7 @@ export function getStatusCode(err: unknown): number | undefined {
   return isAxiosError(err) ? err.response?.status : undefined;
 }
 
-function isAxiosError(err: unknown): err is AxiosError {
+export function isAxiosError(err: unknown): err is AxiosError {
   return (
     typeof err === 'object' &&
     err !== null &&

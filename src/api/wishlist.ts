@@ -1,8 +1,8 @@
-import { apiClient } from './client';
+import { apiClient, apiGet } from './client';
 import { WishlistItem } from '@/types/wishlist';
 
 export function getWishlist() {
-  return apiClient.get<{ items: WishlistItem[] }>('/wishlist').then((res) => res.data.items);
+  return apiGet<{ items: WishlistItem[] }>('/wishlist').then((data) => data.items);
 }
 
 export function addWishlistItem(productId: string) {

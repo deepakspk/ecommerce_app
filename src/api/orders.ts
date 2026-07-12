@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient, apiGet } from './client';
 import { Order, PaymentMethod } from '@/types/order';
 import { ReturnRequest, ReturnRequestItem } from '@/types/return';
 
@@ -14,11 +14,11 @@ export function createOrder(input: CreateOrderInput) {
 }
 
 export function getOrders() {
-  return apiClient.get<{ orders: Order[] }>('/orders').then((res) => res.data.orders);
+  return apiGet<{ orders: Order[] }>('/orders').then((data) => data.orders);
 }
 
 export function getOrder(orderId: string) {
-  return apiClient.get<{ order: Order }>(`/orders/${orderId}`).then((res) => res.data.order);
+  return apiGet<{ order: Order }>(`/orders/${orderId}`).then((data) => data.order);
 }
 
 /** Only `PENDING`/`CONFIRMED` orders are eligible — the server's exact error message names the actual current status otherwise. */
@@ -27,9 +27,9 @@ export function cancelOrder(orderId: string) {
 }
 
 export function getReturnRequests(orderId: string) {
-  return apiClient
-    .get<{ returnRequests: ReturnRequest[] }>(`/orders/${orderId}/return`)
-    .then((res) => res.data.returnRequests);
+  return apiGet<{ returnRequests: ReturnRequest[] }>(`/orders/${orderId}/return`).then(
+    (data) => data.returnRequests,
+  );
 }
 
 export function createReturnRequest(orderId: string, items: ReturnRequestItem[]) {

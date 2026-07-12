@@ -1,8 +1,8 @@
-import { apiClient } from './client';
+import { apiClient, apiGet } from './client';
 import { Address, AddressInput } from '@/types/address';
 
 export function getAddresses() {
-  return apiClient.get<{ addresses: Address[] }>('/addresses').then((res) => res.data.addresses);
+  return apiGet<{ addresses: Address[] }>('/addresses').then((data) => data.addresses);
 }
 
 export function createAddress(input: AddressInput) {

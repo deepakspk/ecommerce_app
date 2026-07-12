@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient, apiGet } from './client';
 import { User } from '@/types/user';
 
 /**
@@ -41,7 +41,7 @@ export function resetPassword(token: string, password: string) {
 }
 
 export function getMe() {
-  return apiClient.get<{ user: User }>('/auth/me').then((res) => res.data);
+  return apiGet<{ user: User }>('/auth/me');
 }
 
 export interface UpdateProfileInput {

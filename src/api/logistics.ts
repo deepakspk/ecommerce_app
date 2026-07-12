@@ -1,7 +1,7 @@
-import { apiClient } from './client';
+import { apiClient, apiGet } from './client';
 
 export function getInternationalFee() {
-  return apiClient.get<{ fee: number }>('/logistics/international-fee').then((res) => res.data.fee);
+  return apiGet<{ fee: number }>('/logistics/international-fee').then((data) => data.fee);
 }
 
 /** Raw NCM branch objects, pass-through unmodified — `district_name` is the only field name the backend itself relies on. */
@@ -12,9 +12,9 @@ export interface LogisticsBranch {
 }
 
 export function getBranches(district: string) {
-  return apiClient
-    .get<{ branches: LogisticsBranch[] }>('/logistics/branches', { params: { district } })
-    .then((res) => res.data.branches);
+  return apiGet<{ branches: LogisticsBranch[] }>('/logistics/branches', { params: { district } }).then(
+    (data) => data.branches,
+  );
 }
 
 /** Body is `branchName` only — the server supplies its own pickup branch and delivery type (01-DOCUMENTATION.md §7.7 ground truth). */

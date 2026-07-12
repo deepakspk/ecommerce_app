@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiGet } from './client';
 import { ProductDetail, ProductSummary } from '@/types/product';
 import { ProductVariant } from '@/types/variant';
 
@@ -27,7 +27,7 @@ export interface ProductListResponse {
 }
 
 export function getProducts(params: ProductListParams) {
-  return apiClient.get<ProductListResponse>('/products', { params }).then((res) => res.data);
+  return apiGet<ProductListResponse>('/products', { params });
 }
 
 export function getProductsByFeatureType(featureTypeSlug: string, limit = 8) {
@@ -42,7 +42,7 @@ export interface AvailableFilters {
 }
 
 export function getAvailableFilters() {
-  return apiClient.get<AvailableFilters>('/products/available-filters').then((res) => res.data);
+  return apiGet<AvailableFilters>('/products/available-filters');
 }
 
 export interface ProductDetailResponse {
@@ -53,5 +53,5 @@ export interface ProductDetailResponse {
 
 /** Returns the product, every variant, and related products in one call — no extra requests needed (01-DOCUMENTATION.md §2.4). */
 export function getProductBySlug(slug: string) {
-  return apiClient.get<ProductDetailResponse>(`/products/${slug}`).then((res) => res.data);
+  return apiGet<ProductDetailResponse>(`/products/${slug}`);
 }

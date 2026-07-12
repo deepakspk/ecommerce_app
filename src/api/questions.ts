@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient, apiGet } from './client';
 import { ProductQuestion } from '@/types/question';
 
 export interface QuestionListResponse {
@@ -9,9 +9,7 @@ export interface QuestionListResponse {
 }
 
 export function getQuestions(productId: string, page = 1, limit = 50) {
-  return apiClient
-    .get<QuestionListResponse>(`/products/${productId}/questions`, { params: { page, limit } })
-    .then((res) => res.data);
+  return apiGet<QuestionListResponse>(`/products/${productId}/questions`, { params: { page, limit } });
 }
 
 export function submitQuestion(productId: string, question: string) {
