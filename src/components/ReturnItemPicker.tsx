@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { OrderItem } from '@/types/order';
 import { ReturnRequestItem } from '@/types/return';
 import { QuantityStepper } from './QuantityStepper';
-import { colors, radius, spacing, typography } from '@/theme';
+import { Card, Input } from '@/components/ui';
+import { colors, spacing, typography } from '@/theme';
 
 interface RowState {
   selected: boolean;
@@ -41,7 +42,7 @@ export function ReturnItemPicker({ items, onChange }: Props) {
         const row = rows[item.variantId];
         const label = [item.size, item.color].filter((v) => v && v !== 'Default').join(' / ');
         return (
-          <View key={item.variantId} style={styles.row}>
+          <Card key={item.variantId} style={styles.row}>
             <Pressable style={styles.checkboxRow} onPress={() => updateRow(item.variantId, { selected: !row.selected })}>
               <Ionicons
                 name={row.selected ? 'checkbox' : 'square-outline'}
@@ -67,17 +68,16 @@ export function ReturnItemPicker({ items, onChange }: Props) {
                     onChange={(quantity) => updateRow(item.variantId, { quantity })}
                   />
                 </View>
-                <TextInput
-                  style={styles.reasonInput}
+                <Input
                   value={row.reason}
                   onChangeText={(reason) => updateRow(item.variantId, { reason })}
                   placeholder="Reason for return (required)"
-                  placeholderTextColor={colors.gray400}
                   multiline
+                  style={styles.reasonInput}
                 />
               </View>
             ) : null}
-          </View>
+          </Card>
         );
       })}
     </View>
@@ -86,24 +86,10 @@ export function ReturnItemPicker({ items, onChange }: Props) {
 
 const styles = StyleSheet.create({
   container: { gap: spacing.md },
-  row: {
-    borderWidth: 1,
-    borderColor: colors.gray200,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
+  row: { gap: spacing.sm },
   checkboxRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
   itemInfo: { flex: 1, gap: 2 },
   details: { gap: spacing.sm, paddingLeft: spacing.xl },
   quantityRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  reasonInput: {
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: radius.sm,
-    padding: spacing.sm,
-    fontSize: 13,
-    minHeight: 50,
-    textAlignVertical: 'top',
-  },
+  reasonInput: { minHeight: 50, textAlignVertical: 'top', fontSize: 13 },
 });

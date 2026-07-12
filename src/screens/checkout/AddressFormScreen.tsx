@@ -1,19 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { CartStackParamList } from '@/navigation/types';
 import { createAddress, updateAddress } from '@/api/addresses';
 import { getBranches, LogisticsBranch } from '@/api/logistics';
@@ -21,7 +8,8 @@ import { NEPAL_GEO, getDistricts, getMunicipalities } from '@/constants/nepalGeo
 import { COUNTRIES } from '@/constants/countries';
 import { AddressInput } from '@/types/address';
 import { getErrorMessage, getFieldErrors } from '@/utils/errorHelpers';
-import { colors, radius, spacing, typography } from '@/theme';
+import { Button, FormError, Input, Select } from '@/components/ui';
+import { colors, spacing, typography } from '@/theme';
 
 const PROVINCES = Object.keys(NEPAL_GEO);
 
@@ -31,9 +19,9 @@ function branchDisplayName(branch: LogisticsBranch): string {
 
 /**
  * Cascading province -> district -> municipality (753 entries — a plain
- * dropdown is unusable at that size, so this is a searchable modal list)
- * -> branch. Switching country away from "Nepal" swaps to generic free-text
- * fields (01-DOCUMENTATION.md §2.9).
+ * dropdown is unusable at that size, so this uses the shared `Select`'s
+ * searchable modal list) -> branch. Switching country away from "Nepal" swaps
+ * to generic free-text fields (01-DOCUMENTATION.md §2.9).
  */
 export function AddressFormScreen() {
   const navigation = useNavigation<NavigationProp<CartStackParamList>>();
@@ -54,12 +42,6 @@ export function AddressFormScreen() {
   const [street, setStreet] = useState(existing?.street ?? '');
   const [landmark, setLandmark] = useState(existing?.landmark ?? '');
   const [isDefault, setIsDefault] = useState(existing?.isDefault ?? false);
-
-  const [countryPickerOpen, setCountryPickerOpen] = useState(false);
-  const [provincePickerOpen, setProvincePickerOpen] = useState(false);
-  const [districtPickerOpen, setDistrictPickerOpen] = useState(false);
-  const [municipalityPickerOpen, setMunicipalityPickerOpen] = useState(false);
-  const [branchPickerOpen, setBranchPickerOpen] = useState(false);
 
   const [branches, setBranches] = useState<LogisticsBranch[]>([]);
   const [branchesLoaded, setBranchesLoaded] = useState(false);
@@ -92,7 +74,6 @@ export function AddressFormScreen() {
       setDistrict(nextDistrict);
       setCity('');
       setBranchName('');
-      setDistrictPickerOpen(false);
       loadBranches(nextDistrict);
     },
     [loadBranches],
@@ -159,289 +140,121 @@ export function AddressFormScreen() {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={typography.h1}>{isEdit ? 'Edit Address' : 'Add Address'}</Text>
 
-        {formError ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>{formError}</Text>
-          </View>
-        ) : null}
+        <FormError message={formError} />
 
-        <Field label="Label (optional)">
-          <TextInput style={styles.input} value={label} onChangeText={setLabel} placeholder="Home, Office, ..." />
-        </Field>
+        <Input label="Label (optional)" value={label} onChangeText={setLabel} placeholder="Home, Office, ..." />
 
-        <Field label="Recipient name" error={fieldErrors.recipientName}>
-          <TextInput style={styles.input} value={recipientName} onChangeText={setRecipientName} />
-        </Field>
+        <Input
+          label="Recipient name"
+          value={recipientName}
+          onChangeText={setRecipientName}
+          error={fieldErrors.recipientName}
+        />
 
-        <Field label="Phone" error={fieldErrors.phone}>
-          <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-        </Field>
+        <Input label="Phone" value={phone} onChangeText={setPhone} error={fieldErrors.phone} keyboardType="phone-pad" />
 
-        <Field label="Country">
-          <Pressable style={styles.selectInput} onPress={() => setCountryPickerOpen(true)}>
-            <Text style={typography.body}>{country}</Text>
-            <Ionicons name="chevron-down" size={16} color={colors.gray500} />
-          </Pressable>
-        </Field>
+        <Select
+          label="Country"
+          value={country}
+          options={COUNTRIES}
+          searchable={false}
+          onChange={(value) => {
+            setCountry(value);
+            if (value !== 'Nepal') {
+              setProvince('');
+              setDistrict('');
+              setBranchName('');
+            }
+            setCity('');
+          }}
+        />
 
         {isNepal ? (
           <>
-            <Field label="Province" error={fieldErrors.province}>
-              <Pressable style={styles.selectInput} onPress={() => setProvincePickerOpen(true)}>
-                <Text style={typography.body}>{province || 'Select province'}</Text>
-                <Ionicons name="chevron-down" size={16} color={colors.gray500} />
-              </Pressable>
-            </Field>
+            <Select
+              label="Province"
+              value={province}
+              placeholder="Select province"
+              options={PROVINCES}
+              error={fieldErrors.province}
+              searchable={false}
+              onChange={(value) => {
+                setProvince(value);
+                setDistrict('');
+                setCity('');
+                setBranchName('');
+                setBranches([]);
+                setBranchesLoaded(false);
+              }}
+            />
 
-            <Field label="District" error={fieldErrors.district}>
-              <Pressable
-                style={[styles.selectInput, !province && styles.selectInputDisabled]}
-                onPress={() => province && setDistrictPickerOpen(true)}
-                disabled={!province}
-              >
-                <Text style={typography.body}>{district || 'Select district'}</Text>
-                <Ionicons name="chevron-down" size={16} color={colors.gray500} />
-              </Pressable>
-            </Field>
+            <Select
+              label="District"
+              value={district}
+              placeholder="Select district"
+              options={districts}
+              error={fieldErrors.district}
+              disabled={!province}
+              onChange={handleSelectDistrict}
+            />
 
-            <Field label="Municipality" error={fieldErrors.city}>
-              <Pressable
-                style={[styles.selectInput, !district && styles.selectInputDisabled]}
-                onPress={() => district && setMunicipalityPickerOpen(true)}
-                disabled={!district}
-              >
-                <Text style={typography.body}>{city || 'Select municipality'}</Text>
-                <Ionicons name="chevron-down" size={16} color={colors.gray500} />
-              </Pressable>
-            </Field>
+            <Select
+              label="Municipality"
+              value={city}
+              placeholder="Select municipality"
+              options={municipalities}
+              error={fieldErrors.city}
+              disabled={!district}
+              onChange={setCity}
+            />
 
             {district ? (
-              <Field
-                label={branchRequired ? 'Courier branch' : 'Courier branch (optional)'}
-                error={fieldErrors.branchName}
-              >
-                {branches.length > 0 ? (
-                  <Pressable style={styles.selectInput} onPress={() => setBranchPickerOpen(true)}>
-                    <Text style={typography.body}>{branchName || 'Select branch'}</Text>
-                    <Ionicons name="chevron-down" size={16} color={colors.gray500} />
-                  </Pressable>
-                ) : (
-                  <TextInput
-                    style={styles.input}
-                    value={branchName}
-                    onChangeText={setBranchName}
-                    placeholder={branchesLoaded ? 'No branches found for this district' : 'Loading branches…'}
-                  />
-                )}
-              </Field>
+              branches.length > 0 ? (
+                <Select
+                  label={branchRequired ? 'Courier branch' : 'Courier branch (optional)'}
+                  value={branchName}
+                  placeholder="Select branch"
+                  options={branches.map(branchDisplayName)}
+                  error={fieldErrors.branchName}
+                  onChange={setBranchName}
+                />
+              ) : (
+                <Input
+                  label={branchRequired ? 'Courier branch' : 'Courier branch (optional)'}
+                  value={branchName}
+                  onChangeText={setBranchName}
+                  error={fieldErrors.branchName}
+                  placeholder={branchesLoaded ? 'No branches found for this district' : 'Loading branches…'}
+                />
+              )
             ) : null}
           </>
         ) : (
-          <Field label="City" error={fieldErrors.city}>
-            <TextInput style={styles.input} value={city} onChangeText={setCity} />
-          </Field>
+          <Input label="City" value={city} onChangeText={setCity} error={fieldErrors.city} />
         )}
 
-        <Field label="Area">
-          <TextInput style={styles.input} value={area} onChangeText={setArea} />
-        </Field>
+        <Input label="Area" value={area} onChangeText={setArea} />
 
-        {!isNepal ? (
-          <Field label="Street">
-            <TextInput style={styles.input} value={street} onChangeText={setStreet} />
-          </Field>
-        ) : null}
+        {!isNepal ? <Input label="Street" value={street} onChangeText={setStreet} /> : null}
 
-        <Field label="Landmark">
-          <TextInput style={styles.input} value={landmark} onChangeText={setLandmark} />
-        </Field>
+        <Input label="Landmark" value={landmark} onChangeText={setLandmark} />
 
-        <Field label="Postal code (optional)">
-          <TextInput style={styles.input} value={postalCode} onChangeText={setPostalCode} keyboardType="numeric" />
-        </Field>
+        <Input label="Postal code (optional)" value={postalCode} onChangeText={setPostalCode} keyboardType="numeric" />
 
         <View style={styles.switchRow}>
           <Text style={typography.body}>Set as default address</Text>
           <Switch value={isDefault} onValueChange={setIsDefault} />
         </View>
 
-        <Pressable style={[styles.submitBtn, submitting && styles.submitBtnDisabled]} onPress={handleSubmit} disabled={submitting}>
-          {submitting ? <ActivityIndicator color={colors.white} /> : <Text style={styles.submitText}>Save Address</Text>}
-        </Pressable>
+        <Button title="Save Address" onPress={handleSubmit} loading={submitting} style={styles.submitBtn} />
       </ScrollView>
-
-      <SearchableListModal
-        visible={countryPickerOpen}
-        title="Select country"
-        options={COUNTRIES}
-        onSelect={(value) => {
-          setCountry(value);
-          if (value !== 'Nepal') {
-            setProvince('');
-            setDistrict('');
-            setBranchName('');
-          }
-          setCity('');
-          setCountryPickerOpen(false);
-        }}
-        onClose={() => setCountryPickerOpen(false)}
-      />
-
-      <SearchableListModal
-        visible={provincePickerOpen}
-        title="Select province"
-        options={PROVINCES}
-        onSelect={(value) => {
-          setProvince(value);
-          setDistrict('');
-          setCity('');
-          setBranchName('');
-          setBranches([]);
-          setBranchesLoaded(false);
-          setProvincePickerOpen(false);
-        }}
-        onClose={() => setProvincePickerOpen(false)}
-      />
-
-      <SearchableListModal
-        visible={districtPickerOpen}
-        title="Select district"
-        options={districts}
-        onSelect={handleSelectDistrict}
-        onClose={() => setDistrictPickerOpen(false)}
-      />
-
-      <SearchableListModal
-        visible={municipalityPickerOpen}
-        title="Select municipality"
-        options={municipalities}
-        onSelect={(value) => {
-          setCity(value);
-          setMunicipalityPickerOpen(false);
-        }}
-        onClose={() => setMunicipalityPickerOpen(false)}
-      />
-
-      <SearchableListModal
-        visible={branchPickerOpen}
-        title="Select branch"
-        options={branches.map(branchDisplayName)}
-        onSelect={(value) => {
-          setBranchName(value);
-          setBranchPickerOpen(false);
-        }}
-        onClose={() => setBranchPickerOpen(false)}
-      />
     </KeyboardAvoidingView>
-  );
-}
-
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.field}>
-      <Text style={typography.label}>{label}</Text>
-      {children}
-      {error ? <Text style={styles.fieldError}>{error}</Text> : null}
-    </View>
-  );
-}
-
-function SearchableListModal({
-  visible,
-  title,
-  options,
-  onSelect,
-  onClose,
-}: {
-  visible: boolean;
-  title: string;
-  options: string[];
-  onSelect: (value: string) => void;
-  onClose: () => void;
-}) {
-  const [query, setQuery] = useState('');
-  const filtered = useMemo(
-    () => options.filter((opt) => opt.toLowerCase().includes(query.trim().toLowerCase())),
-    [options, query],
-  );
-
-  return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View style={styles.modalContainer}>
-        <View style={styles.modalHeader}>
-          <Text style={typography.h2}>{title}</Text>
-          <Pressable onPress={onClose} hitSlop={8}>
-            <Ionicons name="close" size={22} color={colors.gray700} />
-          </Pressable>
-        </View>
-        <TextInput
-          style={styles.modalSearchInput}
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Search"
-          placeholderTextColor={colors.gray400}
-          autoFocus
-        />
-        <ScrollView keyboardShouldPersistTaps="handled">
-          {filtered.map((opt) => (
-            <Pressable key={opt} style={styles.modalRow} onPress={() => onSelect(opt)}>
-              <Text style={typography.body}>{opt}</Text>
-            </Pressable>
-          ))}
-          {filtered.length === 0 ? <Text style={[typography.muted, styles.modalEmpty]}>No matches.</Text> : null}
-        </ScrollView>
-      </View>
-    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
   container: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  field: { gap: spacing.xs },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    color: colors.gray900,
-  },
-  selectInput: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  selectInputDisabled: { opacity: 0.5 },
-  fieldError: { fontSize: 12, color: colors.danger600 },
-  errorBanner: { backgroundColor: colors.danger50, borderRadius: 8, padding: spacing.md },
-  errorBannerText: { color: colors.danger700, fontSize: 13 },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  submitBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  submitBtnDisabled: { opacity: 0.7 },
-  submitText: { color: colors.white, fontWeight: '600' },
-  modalContainer: { flex: 1, backgroundColor: colors.white, padding: spacing.lg, gap: spacing.md },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  modalSearchInput: {
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-  },
-  modalRow: { paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.gray100 },
-  modalEmpty: { textAlign: 'center', marginTop: spacing.xl },
+  submitBtn: { marginTop: spacing.md },
 });

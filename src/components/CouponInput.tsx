@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { ApplyCouponResponse, applyCoupon } from '@/api/cart';
 import { getErrorMessage } from '@/utils/errorHelpers';
-import { colors, radius, spacing } from '@/theme';
+import { Button, Input } from '@/components/ui';
+import { colors, spacing } from '@/theme';
 
 interface Props {
   onApplied: (result: ApplyCouponResponse) => void;
@@ -36,17 +37,10 @@ export function CouponInput({ onApplied }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <TextInput
-          style={styles.input}
-          value={code}
-          onChangeText={setCode}
-          placeholder="Coupon code"
-          placeholderTextColor={colors.gray400}
-          autoCapitalize="characters"
-        />
-        <Pressable style={[styles.applyBtn, submitting && styles.applyBtnDisabled]} onPress={handleApply} disabled={submitting}>
-          {submitting ? <ActivityIndicator color={colors.white} size="small" /> : <Text style={styles.applyText}>Apply</Text>}
-        </Pressable>
+        <View style={styles.inputWrap}>
+          <Input value={code} onChangeText={setCode} placeholder="Coupon code" autoCapitalize="characters" />
+        </View>
+        <Button title="Apply" onPress={handleApply} loading={submitting} fullWidth={false} />
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
@@ -55,25 +49,7 @@ export function CouponInput({ onApplied }: Props) {
 
 const styles = StyleSheet.create({
   container: { gap: spacing.xs },
-  row: { flexDirection: 'row', gap: spacing.sm },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    color: colors.gray900,
-  },
-  applyBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  applyBtnDisabled: { opacity: 0.7 },
-  applyText: { color: colors.white, fontWeight: '600', fontSize: 13 },
+  row: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
+  inputWrap: { flex: 1 },
   error: { color: colors.danger600, fontSize: 12 },
 });

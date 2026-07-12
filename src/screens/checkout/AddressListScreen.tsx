@@ -1,12 +1,12 @@
 import { useCallback, useState } from 'react';
 import { NavigationProp, useFocusEffect, useNavigation } from '@react-navigation/native';
-import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { CartStackParamList } from '@/navigation/types';
 import { deleteAddress, getAddresses, setDefaultAddress } from '@/api/addresses';
 import { AddressCard } from '@/components/AddressCard';
-import { EmptyState } from '@/components/EmptyState';
 import { getErrorMessage } from '@/utils/errorHelpers';
 import { Address } from '@/types/address';
+import { Button, EmptyState, FormError } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 type FetchState = 'loading' | 'ready' | 'error';
@@ -100,15 +100,13 @@ export function AddressListScreen() {
       />
 
       {error ? (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.errorBannerWrap}>
+          <FormError message={error} />
         </View>
       ) : null}
 
       <View style={styles.footer}>
-        <Pressable style={styles.addBtn} onPress={() => navigation.navigate('AddressForm', undefined)}>
-          <Text style={styles.addText}>+ Add New Address</Text>
-        </Pressable>
+        <Button title="+ Add New Address" variant="secondary" onPress={() => navigation.navigate('AddressForm', undefined)} />
       </View>
     </View>
   );
@@ -119,21 +117,6 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.white },
   list: { padding: spacing.lg, paddingBottom: spacing.xxl },
   title: { marginBottom: spacing.md },
-  errorBanner: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    padding: spacing.md,
-    borderRadius: 8,
-    backgroundColor: colors.danger50,
-  },
-  errorText: { color: colors.danger700, fontSize: 13 },
+  errorBannerWrap: { marginHorizontal: spacing.lg, marginBottom: spacing.sm },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.gray100 },
-  addBtn: {
-    borderWidth: 1,
-    borderColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  addText: { color: colors.brand600, fontWeight: '600' },
 });

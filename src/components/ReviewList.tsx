@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Review } from '@/types/review';
-import { StarRating } from './StarRating';
-import { Pagination } from './Pagination';
+import { Pagination, StarRating } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 interface Props {

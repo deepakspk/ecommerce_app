@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CartStackParamList } from '@/navigation/types';
 import { getOrder, getReturnRequests, createReturnRequest } from '@/api/orders';
 import { getErrorMessage } from '@/utils/errorHelpers';
 import { ReturnItemPicker } from '@/components/ReturnItemPicker';
-import { EmptyState } from '@/components/EmptyState';
 import { Order } from '@/types/order';
 import { ACTIVE_RETURN_STATUSES, ReturnRequest, ReturnRequestItem } from '@/types/return';
+import { Badge, Button, EmptyState, FormError } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 type FetchState = 'loading' | 'ready' | 'error';
@@ -92,7 +92,7 @@ export function ReturnRequestScreen() {
       <View style={styles.container}>
         <Text style={typography.h1}>Return Request</Text>
         <Text style={typography.body}>A return request is already in progress for this order.</Text>
-        <Text style={typography.label}>Status: {existingRequest.status}</Text>
+        <Badge kind="return" status={existingRequest.status} />
         {existingRequest.adminNote ? <Text style={typography.muted}>{existingRequest.adminNote}</Text> : null}
       </View>
     );
@@ -103,21 +103,17 @@ export function ReturnRequestScreen() {
       <Text style={typography.h1}>Request Return</Text>
       <Text style={typography.muted}>Select the item(s) you&apos;d like to return and tell us why.</Text>
 
-      {formError ? (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{formError}</Text>
-        </View>
-      ) : null}
+      <FormError message={formError} />
 
       <ReturnItemPicker items={order.items} onChange={setSelections} />
 
-      <Pressable
-        style={[styles.submitBtn, (selections.length === 0 || submitting) && styles.submitBtnDisabled]}
+      <Button
+        title="Submit Return Request"
         onPress={handleSubmit}
-        disabled={selections.length === 0 || submitting}
-      >
-        {submitting ? <ActivityIndicator color={colors.white} /> : <Text style={styles.submitText}>Submit Return Request</Text>}
-      </Pressable>
+        loading={submitting}
+        disabled={selections.length === 0}
+        style={styles.submitBtn}
+      />
     </ScrollView>
   );
 }
@@ -126,15 +122,5 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.white },
   container: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  errorBanner: { backgroundColor: colors.danger50, borderRadius: 8, padding: spacing.md },
-  errorText: { color: colors.danger700, fontSize: 13 },
-  submitBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  submitBtnDisabled: { opacity: 0.6 },
-  submitText: { color: colors.white, fontWeight: '600' },
+  submitBtn: { marginTop: spacing.md },
 });

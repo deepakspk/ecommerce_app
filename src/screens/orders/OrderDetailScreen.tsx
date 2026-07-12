@@ -1,17 +1,16 @@
 import { useCallback, useState } from 'react';
 import { NavigationProp, RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CartStackParamList } from '@/navigation/types';
 import { getOrder, cancelOrder, getReturnRequests } from '@/api/orders';
 import { initiateKhalti, initiateEsewa } from '@/api/payments';
 import { downloadInvoice } from '@/utils/downloadInvoice';
 import { getErrorMessage } from '@/utils/errorHelpers';
-import { OrderStatusBadge } from '@/components/OrderStatusBadge';
-import { OrderTimeline } from '@/components/OrderTimeline';
-import { EmptyState } from '@/components/EmptyState';
 import { Order } from '@/types/order';
 import { ACTIVE_RETURN_STATUSES, ReturnRequest } from '@/types/return';
+import { Badge, Button, EmptyState, FormError } from '@/components/ui';
+import { OrderTimeline } from '@/components/OrderTimeline';
 import { colors, radius, spacing, typography } from '@/theme';
 
 type FetchState = 'loading' | 'ready' | 'error';
@@ -159,15 +158,11 @@ export function OrderDetailScreen() {
     <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
       <View style={styles.headerRow}>
         <Text style={typography.h1}>Order Detail</Text>
-        <OrderStatusBadge kind="order" status={order.status} />
+        <Badge kind="order" status={order.status} />
       </View>
       {order.trackingId ? <Text style={typography.muted}>Tracking ID: {order.trackingId}</Text> : null}
 
-      {actionError ? (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{actionError}</Text>
-        </View>
-      ) : null}
+      <FormError message={actionError} />
 
       <View style={styles.section}>
         <Text style={typography.h2}>Status</Text>
@@ -230,51 +225,46 @@ export function OrderDetailScreen() {
         <Text style={typography.h2}>Payment</Text>
         <View style={styles.summaryRow}>
           <Text style={typography.body}>{order.paymentMethod}</Text>
-          <OrderStatusBadge kind="payment" status={order.paymentStatus} />
+          <Badge kind="payment" status={order.paymentStatus} />
         </View>
       </View>
 
       {activeReturnRequest ? (
         <View style={styles.section}>
-          <Text style={typography.h2}>Return Request</Text>
-          <Text style={typography.body}>Status: {activeReturnRequest.status}</Text>
+          <View style={styles.headerRow}>
+            <Text style={typography.h2}>Return Request</Text>
+            <Badge kind="return" status={activeReturnRequest.status} />
+          </View>
           {activeReturnRequest.adminNote ? <Text style={typography.muted}>{activeReturnRequest.adminNote}</Text> : null}
         </View>
       ) : null}
 
       <View style={styles.actionsSection}>
-        <Pressable style={styles.actionBtn} onPress={handleDownloadInvoice} disabled={downloadingInvoice}>
-          {downloadingInvoice ? (
-            <ActivityIndicator size="small" color={colors.brand600} />
-          ) : (
-            <Text style={styles.actionText}>Download Invoice</Text>
-          )}
-        </Pressable>
+        <Button
+          title="Download Invoice"
+          variant="secondary"
+          onPress={handleDownloadInvoice}
+          loading={downloadingInvoice}
+        />
 
         {canRetryPayment ? (
-          <Pressable style={[styles.actionBtn, styles.primaryActionBtn]} onPress={handleRetryPayment} disabled={retryingPayment}>
-            {retryingPayment ? (
-              <ActivityIndicator size="small" color={colors.white} />
-            ) : (
-              <Text style={styles.primaryActionText}>Retry Payment ({order.paymentMethod})</Text>
-            )}
-          </Pressable>
+          <Button
+            title={`Retry Payment (${order.paymentMethod})`}
+            onPress={handleRetryPayment}
+            loading={retryingPayment}
+          />
         ) : null}
 
         {canRequestReturn ? (
-          <Pressable style={styles.actionBtn} onPress={() => navigation.navigate('ReturnRequest', { orderId: order._id })}>
-            <Text style={styles.actionText}>Request Return</Text>
-          </Pressable>
+          <Button
+            title="Request Return"
+            variant="secondary"
+            onPress={() => navigation.navigate('ReturnRequest', { orderId: order._id })}
+          />
         ) : null}
 
         {canCancel ? (
-          <Pressable style={styles.dangerActionBtn} onPress={handleCancel} disabled={cancelling}>
-            {cancelling ? (
-              <ActivityIndicator size="small" color={colors.danger600} />
-            ) : (
-              <Text style={styles.dangerActionText}>Cancel Order</Text>
-            )}
-          </Pressable>
+          <Button title="Cancel Order" variant="danger" onPress={handleCancel} loading={cancelling} />
         ) : null}
       </View>
     </ScrollView>
@@ -300,25 +290,5 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: colors.gray100, marginVertical: spacing.xs },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 2 },
   discountText: { color: colors.success700 },
-  errorBanner: { backgroundColor: colors.danger50, borderRadius: 8, padding: spacing.md },
-  errorText: { color: colors.danger700, fontSize: 13 },
   actionsSection: { gap: spacing.sm },
-  actionBtn: {
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  actionText: { color: colors.gray700, fontWeight: '600' },
-  primaryActionBtn: { backgroundColor: colors.brand600, borderColor: colors.brand600 },
-  primaryActionText: { color: colors.white, fontWeight: '600' },
-  dangerActionBtn: {
-    borderWidth: 1,
-    borderColor: colors.danger600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  dangerActionText: { color: colors.danger600, fontWeight: '600' },
 });

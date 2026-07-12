@@ -13,7 +13,6 @@ import {
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
 import { HomeStackParamList, RootStackParamList } from '@/navigation/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
@@ -31,15 +30,15 @@ import { Review, ReviewEligibility } from '@/types/review';
 import { User } from '@/types/user';
 import { ProductQuestion } from '@/types/question';
 import { VariantPicker } from '@/components/VariantPicker';
-import { StarRating } from '@/components/StarRating';
 import { ReviewList } from '@/components/ReviewList';
 import { ReviewForm } from '@/components/ReviewForm';
 import { QuestionList } from '@/components/QuestionList';
 import { QuestionForm } from '@/components/QuestionForm';
 import { ProductRail } from '@/components/ProductRail';
 import { RecentlyViewedRail } from '@/components/RecentlyViewedRail';
-import { EmptyState } from '@/components/EmptyState';
 import { WishlistButton } from '@/components/WishlistButton';
+import { QuantityStepper } from '@/components/QuantityStepper';
+import { Button, EmptyState, FormError, StarRating, showToast } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/theme';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -308,7 +307,7 @@ export function ProductDetailScreen() {
         },
         quantity,
       );
-      Alert.alert('Added to cart', `${product.name} has been added to your cart.`);
+      showToast('Added to cart');
     } catch (err) {
       setAddToCartError(getErrorMessage(err));
     } finally {
@@ -425,44 +424,12 @@ export function ProductDetailScreen() {
           resolvedVariant.stockQuantity > 0 ? (
             <>
               <Text style={typography.muted}>{resolvedVariant.stockQuantity} in stock</Text>
-              <View style={styles.quantityRow}>
-                <Pressable
-                  style={styles.stepBtn}
-                  onPress={() => setQuantity((q) => Math.max(1, q - 1))}
-                  disabled={quantity <= 1}
-                >
-                  <Ionicons name="remove" size={18} color={colors.gray700} />
-                </Pressable>
-                <Text style={styles.quantityText}>{quantity}</Text>
-                <Pressable
-                  style={styles.stepBtn}
-                  onPress={() => setQuantity((q) => Math.min(resolvedVariant.stockQuantity, q + 1))}
-                  disabled={quantity >= resolvedVariant.stockQuantity}
-                >
-                  <Ionicons name="add" size={18} color={colors.gray700} />
-                </Pressable>
-              </View>
-              {addToCartError ? (
-                <View style={styles.errorBanner}>
-                  <Text style={styles.errorBannerText}>{addToCartError}</Text>
-                </View>
-              ) : null}
-              <Pressable
-                style={[styles.addToCartBtn, addingToCart && styles.addToCartBtnDisabled]}
-                onPress={handleAddToCart}
-                disabled={addingToCart}
-              >
-                {addingToCart ? (
-                  <ActivityIndicator color={colors.white} />
-                ) : (
-                  <Text style={styles.addToCartText}>Add to Cart</Text>
-                )}
-              </Pressable>
+              <QuantityStepper quantity={quantity} onChange={setQuantity} max={resolvedVariant.stockQuantity} />
+              <FormError message={addToCartError} />
+              <Button title="Add to Cart" onPress={handleAddToCart} loading={addingToCart} />
             </>
           ) : (
-            <Pressable style={styles.notifyBtn} onPress={handleNotifyMe}>
-              <Text style={styles.notifyText}>Notify Me When Available</Text>
-            </Pressable>
+            <Button title="Notify Me When Available" variant="secondary" onPress={handleNotifyMe} />
           )
         ) : (
           <Text style={typography.muted}>Select options to see stock and price.</Text>
@@ -622,34 +589,6 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
   strikePrice: { fontSize: 16, color: colors.gray500, textDecorationLine: 'line-through' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  quantityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  stepBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quantityText: { fontSize: 16, fontWeight: '600', color: colors.gray900 },
-  addToCartBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  addToCartBtnDisabled: { opacity: 0.7 },
-  addToCartText: { color: colors.white, fontWeight: '600' },
-  errorBanner: { backgroundColor: colors.danger50, borderRadius: 8, padding: spacing.md },
-  errorBannerText: { color: colors.danger700, fontSize: 13 },
-  notifyBtn: {
-    backgroundColor: colors.gray900,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  notifyText: { color: colors.white, fontWeight: '600' },
   tabBar: {
     flexDirection: 'row',
     paddingHorizontal: spacing.lg,

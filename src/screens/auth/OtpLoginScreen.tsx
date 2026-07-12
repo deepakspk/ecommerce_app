@@ -1,22 +1,13 @@
 import { useEffect, useState } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { AuthStackParamList, RootStackParamList } from '@/navigation/types';
 import { requestOtp } from '@/api/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { isValidNepaliPhone, isValidOtp } from '@/utils/validators';
 import { getErrorMessage, getStatusCode } from '@/utils/errorHelpers';
+import { Button, FormError, Input } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'OtpLogin'>;
@@ -90,67 +81,37 @@ export function OtpLoginScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={typography.h1}>Log in with OTP</Text>
 
-        {formError ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>{formError}</Text>
-          </View>
-        ) : null}
+        <FormError message={formError} />
 
         {stage === 'request' ? (
           <>
-            <View style={styles.field}>
-              <Text style={typography.label}>Phone number</Text>
-              <TextInput
-                style={[styles.input, fieldError && styles.inputError]}
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                placeholder="98XXXXXXXX"
-              />
-              {fieldError ? <Text style={styles.fieldError}>{fieldError}</Text> : null}
-            </View>
+            <Input
+              label="Phone number"
+              value={phone}
+              onChangeText={setPhone}
+              error={fieldError ?? undefined}
+              keyboardType="phone-pad"
+              placeholder="98XXXXXXXX"
+            />
 
-            <Pressable
-              style={[styles.primaryBtn, submitting && styles.btnDisabled]}
-              onPress={handleRequestCode}
-              disabled={submitting}
-            >
-              {submitting ? (
-                <ActivityIndicator color={colors.white} />
-              ) : (
-                <Text style={styles.primaryBtnText}>Send Code</Text>
-              )}
-            </Pressable>
+            <Button title="Send Code" onPress={handleRequestCode} loading={submitting} />
           </>
         ) : (
           <>
             <Text style={[typography.muted, styles.note]}>
               Enter the 6-digit code sent to {phone}
             </Text>
-            <View style={styles.field}>
-              <Text style={typography.label}>Verification code</Text>
-              <TextInput
-                style={[styles.input, fieldError && styles.inputError]}
-                value={code}
-                onChangeText={setCode}
-                keyboardType="number-pad"
-                maxLength={6}
-                placeholder="123456"
-              />
-              {fieldError ? <Text style={styles.fieldError}>{fieldError}</Text> : null}
-            </View>
+            <Input
+              label="Verification code"
+              value={code}
+              onChangeText={setCode}
+              error={fieldError ?? undefined}
+              keyboardType="number-pad"
+              maxLength={6}
+              placeholder="123456"
+            />
 
-            <Pressable
-              style={[styles.primaryBtn, submitting && styles.btnDisabled]}
-              onPress={handleVerify}
-              disabled={submitting}
-            >
-              {submitting ? (
-                <ActivityIndicator color={colors.white} />
-              ) : (
-                <Text style={styles.primaryBtnText}>Verify</Text>
-              )}
-            </Pressable>
+            <Button title="Verify" onPress={handleVerify} loading={submitting} />
 
             <Pressable
               style={styles.link}
@@ -180,32 +141,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   note: { marginBottom: spacing.sm },
-  field: { gap: spacing.xs },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    color: colors.gray900,
-  },
-  inputError: { borderColor: colors.danger600 },
-  fieldError: { fontSize: 12, color: colors.danger600 },
-  errorBanner: {
-    backgroundColor: colors.danger50,
-    borderRadius: 8,
-    padding: spacing.md,
-  },
-  errorBannerText: { color: colors.danger700, fontSize: 13 },
-  primaryBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  btnDisabled: { opacity: 0.7 },
-  primaryBtnText: { color: colors.white, fontWeight: '600' },
   link: { alignItems: 'center', paddingVertical: spacing.xs },
   linkText: { color: colors.brand600, fontSize: 13, fontWeight: '500' },
 });

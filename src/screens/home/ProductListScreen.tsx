@@ -30,7 +30,7 @@ import { ProductCard } from '@/components/ProductCard';
 import { FilterPill } from '@/components/FilterPill';
 import { FilterSheet, FilterValue } from '@/components/FilterSheet';
 import { SortSheet } from '@/components/SortSheet';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState, LoadingSkeleton } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 20;
@@ -43,6 +43,16 @@ type FetchState = 'loading' | 'ready' | 'error';
 interface SelectedCategoryNode {
   root: Category;
   sub?: Category;
+}
+
+function ProductCardSkeleton({ width }: { width: number }) {
+  return (
+    <View style={{ width, gap: spacing.xs }}>
+      <LoadingSkeleton width={width} height={width} style={{ borderRadius: 12 }} />
+      <LoadingSkeleton width="80%" height={14} />
+      <LoadingSkeleton width="40%" height={14} />
+    </View>
+  );
 }
 
 function findCategoryNode(categories: Category[], slug: string): SelectedCategoryNode | null {
@@ -270,7 +280,11 @@ export function ProductListScreen() {
         ListHeaderComponent={listHeader}
         ListEmptyComponent={
           state === 'loading' ? (
-            <ActivityIndicator style={styles.loadingIndicator} color={colors.brand600} />
+            <View style={styles.skeletonGrid}>
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <ProductCardSkeleton key={i} width={CARD_WIDTH} />
+              ))}
+            </View>
           ) : state === 'error' ? (
             <EmptyState
               icon="alert-circle-outline"
@@ -364,4 +378,10 @@ const styles = StyleSheet.create({
   gridRow: { gap: spacing.md, paddingHorizontal: spacing.lg },
   gridContent: { paddingBottom: spacing.xxl, gap: spacing.md },
   loadingIndicator: { marginVertical: spacing.xxl },
+  skeletonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
 });

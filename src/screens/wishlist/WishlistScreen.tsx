@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { WishlistStackParamList } from '@/navigation/types';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -11,8 +11,8 @@ import { getDiscountedPrice } from '@/utils/pricing';
 import { cloudinaryUrl } from '@/utils/cloudinary';
 import { resolveAssetUrl } from '@/utils/assetUrl';
 import { getErrorMessage } from '@/utils/errorHelpers';
-import { EmptyState } from '@/components/EmptyState';
 import { WishlistItem } from '@/types/wishlist';
+import { Button, EmptyState, FormError } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/theme';
 
 const THUMB_SIZE = 72;
@@ -121,17 +121,13 @@ export function WishlistScreen() {
                 </Text>
                 <Text style={typography.priceList}>Rs. {price.toLocaleString()}</Text>
                 <View style={styles.actionsRow}>
-                  <Pressable
-                    style={[styles.moveBtn, moving && styles.moveBtnDisabled]}
+                  <Button
+                    title="Move to Cart"
                     onPress={() => handleMoveToCart(item)}
-                    disabled={moving}
-                  >
-                    {moving ? (
-                      <ActivityIndicator size="small" color={colors.white} />
-                    ) : (
-                      <Text style={styles.moveText}>Move to Cart</Text>
-                    )}
-                  </Pressable>
+                    loading={moving}
+                    size="sm"
+                    fullWidth={false}
+                  />
                   <Pressable onPress={() => removeItem(product._id)} hitSlop={8}>
                     <Text style={styles.removeText}>Remove</Text>
                   </Pressable>
@@ -143,8 +139,8 @@ export function WishlistScreen() {
       />
 
       {error ? (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.errorBannerWrap}>
+          <FormError message={error} />
         </View>
       ) : null}
     </View>
@@ -172,21 +168,6 @@ const styles = StyleSheet.create({
   imagePlaceholder: { backgroundColor: colors.gray100 },
   details: { flex: 1, gap: spacing.xs },
   actionsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xs },
-  moveBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  moveBtnDisabled: { opacity: 0.7 },
-  moveText: { color: colors.white, fontWeight: '600', fontSize: 12 },
   removeText: { color: colors.danger600, fontSize: 12, fontWeight: '500' },
-  errorBanner: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-    padding: spacing.md,
-    borderRadius: 8,
-    backgroundColor: colors.danger50,
-  },
-  errorText: { color: colors.danger700, fontSize: 13 },
+  errorBannerWrap: { marginHorizontal: spacing.lg, marginBottom: spacing.md },
 });

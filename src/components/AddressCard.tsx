@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Address } from '@/types/address';
+import { Card } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/theme';
 
 interface Props {
@@ -22,7 +23,7 @@ function formatAddressLine(address: Address): string {
 
 export function AddressCard({ address, selected, onPress, onEdit, onDelete, onSetDefault }: Props) {
   return (
-    <Pressable style={[styles.container, selected && styles.containerSelected]} onPress={onPress}>
+    <Card selected={selected} onPress={onPress}>
       <View style={styles.header}>
         <Text style={typography.h3}>{address.label || address.recipientName}</Text>
         {address.isDefault ? (
@@ -56,19 +57,11 @@ export function AddressCard({ address, selected, onPress, onEdit, onDelete, onSe
           ) : null}
         </View>
       ) : null}
-    </Pressable>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    borderWidth: 1,
-    borderColor: colors.gray200,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.xs,
-  },
-  containerSelected: { borderColor: colors.brand600, backgroundColor: colors.brand50 },
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   defaultBadge: {
     backgroundColor: colors.success100,

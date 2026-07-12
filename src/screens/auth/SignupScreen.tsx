@@ -1,21 +1,12 @@
 import { useEffect, useState } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { AuthStackParamList, RootStackParamList } from '@/navigation/types';
 import { useAuth } from '@/hooks/useAuth';
 import { isValidEmail, isValidNepaliPhone, isValidPassword } from '@/utils/validators';
 import { getErrorMessage, getFieldErrors, getStatusCode } from '@/utils/errorHelpers';
+import { Button, FormError, Input } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
@@ -85,75 +76,41 @@ export function SignupScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={typography.h1}>Create account</Text>
 
-        {formError ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>{formError}</Text>
-          </View>
-        ) : null}
+        <FormError message={formError} />
 
-        <View style={styles.field}>
-          <Text style={typography.label}>Name</Text>
-          <TextInput
-            style={[styles.input, fieldErrors.name && styles.inputError]}
-            value={name}
-            onChangeText={setName}
-            placeholder="Your full name"
-          />
-          {fieldErrors.name ? <Text style={styles.fieldError}>{fieldErrors.name}</Text> : null}
-        </View>
+        <Input label="Name" value={name} onChangeText={setName} error={fieldErrors.name} placeholder="Your full name" />
 
-        <View style={styles.field}>
-          <Text style={typography.label}>Email</Text>
-          <TextInput
-            style={[styles.input, fieldErrors.email && styles.inputError]}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            placeholder="you@example.com"
-          />
-          {fieldErrors.email ? <Text style={styles.fieldError}>{fieldErrors.email}</Text> : null}
-        </View>
+        <Input
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          error={fieldErrors.email}
+          autoCapitalize="none"
+          autoComplete="email"
+          keyboardType="email-address"
+          placeholder="you@example.com"
+        />
 
-        <View style={styles.field}>
-          <Text style={typography.label}>Phone (optional)</Text>
-          <TextInput
-            style={[styles.input, fieldErrors.phone && styles.inputError]}
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-            placeholder="98XXXXXXXX"
-          />
-          {fieldErrors.phone ? <Text style={styles.fieldError}>{fieldErrors.phone}</Text> : null}
-        </View>
+        <Input
+          label="Phone (optional)"
+          value={phone}
+          onChangeText={setPhone}
+          error={fieldErrors.phone}
+          keyboardType="phone-pad"
+          placeholder="98XXXXXXXX"
+        />
 
-        <View style={styles.field}>
-          <Text style={typography.label}>Password</Text>
-          <TextInput
-            style={[styles.input, fieldErrors.password && styles.inputError]}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoComplete="password-new"
-            placeholder="At least 8 characters"
-          />
-          {fieldErrors.password ? (
-            <Text style={styles.fieldError}>{fieldErrors.password}</Text>
-          ) : null}
-        </View>
+        <Input
+          label="Password"
+          value={password}
+          onChangeText={setPassword}
+          error={fieldErrors.password}
+          secureTextEntry
+          autoComplete="password-new"
+          placeholder="At least 8 characters"
+        />
 
-        <Pressable
-          style={[styles.primaryBtn, submitting && styles.btnDisabled]}
-          onPress={handleSubmit}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator color={colors.white} />
-          ) : (
-            <Text style={styles.primaryBtnText}>Create Account</Text>
-          )}
-        </Pressable>
+        <Button title="Create Account" onPress={handleSubmit} loading={submitting} />
 
         <Pressable style={styles.link} onPress={() => navigation.navigate('Login')}>
           <Text style={styles.linkText}>Already have an account? Log in</Text>
@@ -176,32 +133,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     backgroundColor: colors.white,
   },
-  field: { gap: spacing.xs },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    color: colors.gray900,
-  },
-  inputError: { borderColor: colors.danger600 },
-  fieldError: { fontSize: 12, color: colors.danger600 },
-  errorBanner: {
-    backgroundColor: colors.danger50,
-    borderRadius: 8,
-    padding: spacing.md,
-  },
-  errorBannerText: { color: colors.danger700, fontSize: 13 },
-  primaryBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  btnDisabled: { opacity: 0.7 },
-  primaryBtnText: { color: colors.white, fontWeight: '600' },
   link: { alignItems: 'center', paddingVertical: spacing.xs },
   linkText: { color: colors.brand600, fontSize: 13, fontWeight: '500' },
   closeBtn: { alignItems: 'center', paddingVertical: spacing.sm },

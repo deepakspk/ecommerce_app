@@ -1,20 +1,11 @@
 import { useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { AuthStackParamList } from '@/navigation/types';
 import { forgotPassword } from '@/api/auth';
 import { isValidEmail } from '@/utils/validators';
 import { getErrorMessage } from '@/utils/errorHelpers';
+import { Button, FormError, Input } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
@@ -63,48 +54,25 @@ export function ForgotPasswordScreen({ navigation }: Props) {
           Enter your account email and we&apos;ll send you a reset link.
         </Text>
 
-        {formError ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>{formError}</Text>
-          </View>
-        ) : null}
+        <FormError message={formError} />
+        <FormError
+          variant="success"
+          message={sent ? 'If an account exists for that email, a reset link is on its way.' : null}
+        />
 
-        {sent ? (
-          <View style={styles.successBanner}>
-            <Text style={styles.successBannerText}>
-              If an account exists for that email, a reset link is on its way.
-            </Text>
-          </View>
-        ) : null}
+        <Input
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          error={fieldError ?? undefined}
+          autoCapitalize="none"
+          autoComplete="email"
+          keyboardType="email-address"
+          placeholder="you@example.com"
+          editable={!sent}
+        />
 
-        <View style={styles.field}>
-          <Text style={typography.label}>Email</Text>
-          <TextInput
-            style={[styles.input, fieldError && styles.inputError]}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            placeholder="you@example.com"
-            editable={!sent}
-          />
-          {fieldError ? <Text style={styles.fieldError}>{fieldError}</Text> : null}
-        </View>
-
-        {!sent ? (
-          <Pressable
-            style={[styles.primaryBtn, submitting && styles.btnDisabled]}
-            onPress={handleSubmit}
-            disabled={submitting}
-          >
-            {submitting ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={styles.primaryBtnText}>Send Reset Link</Text>
-            )}
-          </Pressable>
-        ) : null}
+        {!sent ? <Button title="Send Reset Link" onPress={handleSubmit} loading={submitting} /> : null}
 
         <Pressable style={styles.link} onPress={() => navigation.navigate('ResetPassword')}>
           <Text style={styles.linkText}>Already have a reset token? Enter it here</Text>
@@ -128,38 +96,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   note: { marginBottom: spacing.sm },
-  field: { gap: spacing.xs },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    color: colors.gray900,
-  },
-  inputError: { borderColor: colors.danger600 },
-  fieldError: { fontSize: 12, color: colors.danger600 },
-  errorBanner: {
-    backgroundColor: colors.danger50,
-    borderRadius: 8,
-    padding: spacing.md,
-  },
-  errorBannerText: { color: colors.danger700, fontSize: 13 },
-  successBanner: {
-    backgroundColor: colors.success50,
-    borderRadius: 8,
-    padding: spacing.md,
-  },
-  successBannerText: { color: colors.success700, fontSize: 13 },
-  primaryBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  btnDisabled: { opacity: 0.7 },
-  primaryBtnText: { color: colors.white, fontWeight: '600' },
   link: { alignItems: 'center', paddingVertical: spacing.xs },
   linkText: { color: colors.brand600, fontSize: 13, fontWeight: '500' },
 });

@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AvailableFilters } from '@/api/products';
 import { FilterPill } from './FilterPill';
-import { colors, spacing, typography } from '@/theme';
+import { Button, Input, Modal } from '@/components/ui';
+import { spacing, typography } from '@/theme';
 
 export interface FilterValue {
   size?: string;
@@ -22,7 +23,7 @@ interface Props {
 
 const RATING_OPTIONS = [4, 3, 2, 1];
 
-/** A simple full-screen `Modal` sheet — no heavy bottom-sheet library needed at this scope. */
+/** Full-screen page-sheet built on the shared `Modal` chrome — no heavy bottom-sheet library needed at this scope. */
 export function FilterSheet({ visible, onClose, availableFilters, value, onApply }: Props) {
   const [size, setSize] = useState(value.size);
   const [color, setColor] = useState(value.color);
@@ -65,35 +66,28 @@ export function FilterSheet({ visible, onClose, availableFilters, value, onApply
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} onClose={onClose} title="Filters">
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={typography.h2}>Filters</Text>
-
         <View style={styles.section}>
           <Text style={typography.label}>Price range</Text>
           <View style={styles.priceRow}>
-            <TextInput
-              style={styles.priceInput}
-              value={minPrice}
-              onChangeText={setMinPrice}
-              keyboardType="numeric"
-              placeholder={availableFilters ? `Min ${availableFilters.priceMin}` : 'Min'}
-              placeholderTextColor={colors.gray400}
-            />
+            <View style={styles.priceInputWrap}>
+              <Input
+                value={minPrice}
+                onChangeText={setMinPrice}
+                keyboardType="numeric"
+                placeholder={availableFilters ? `Min ${availableFilters.priceMin}` : 'Min'}
+              />
+            </View>
             <Text style={typography.muted}>to</Text>
-            <TextInput
-              style={styles.priceInput}
-              value={maxPrice}
-              onChangeText={setMaxPrice}
-              keyboardType="numeric"
-              placeholder={availableFilters ? `Max ${availableFilters.priceMax}` : 'Max'}
-              placeholderTextColor={colors.gray400}
-            />
+            <View style={styles.priceInputWrap}>
+              <Input
+                value={maxPrice}
+                onChangeText={setMaxPrice}
+                keyboardType="numeric"
+                placeholder={availableFilters ? `Max ${availableFilters.priceMax}` : 'Max'}
+              />
+            </View>
           </View>
         </View>
 
@@ -144,12 +138,8 @@ export function FilterSheet({ visible, onClose, availableFilters, value, onApply
         </View>
 
         <View style={styles.actions}>
-          <Pressable style={styles.resetBtn} onPress={handleReset}>
-            <Text style={styles.resetText}>Reset</Text>
-          </Pressable>
-          <Pressable style={styles.applyBtn} onPress={handleApply}>
-            <Text style={styles.applyText}>Apply</Text>
-          </Pressable>
+          <Button title="Reset" variant="secondary" onPress={handleReset} style={styles.resetBtn} />
+          <Button title="Apply" onPress={handleApply} style={styles.applyBtn} />
         </View>
       </ScrollView>
     </Modal>
@@ -160,33 +150,9 @@ const styles = StyleSheet.create({
   container: { padding: spacing.lg, gap: spacing.lg },
   section: { gap: spacing.sm },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  priceInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    color: colors.gray900,
-  },
+  priceInputWrap: { flex: 1 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   actions: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
-  resetBtn: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  resetText: { color: colors.gray700, fontWeight: '600' },
-  applyBtn: {
-    flex: 2,
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  applyText: { color: colors.white, fontWeight: '600' },
+  resetBtn: { flex: 1 },
+  applyBtn: { flex: 2 },
 });

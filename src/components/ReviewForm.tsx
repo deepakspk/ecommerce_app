@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Review } from '@/types/review';
-import { StarRating } from './StarRating';
+import { Button, Input, StarRating } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 const MAX_COMMENT_LENGTH = 1000;
@@ -40,12 +40,11 @@ export function ReviewForm({ existingReview, onSubmit }: Props) {
       <Text style={typography.label}>{existingReview ? 'Edit your review' : 'Write a review'}</Text>
       <StarRating rating={rating} onChange={setRating} size={26} />
 
-      <TextInput
+      <Input
         style={styles.textarea}
         value={comment}
         onChangeText={(text) => setComment(text.slice(0, MAX_COMMENT_LENGTH))}
         placeholder="Share your thoughts (optional)"
-        placeholderTextColor={colors.gray400}
         multiline
         numberOfLines={4}
       />
@@ -55,43 +54,18 @@ export function ReviewForm({ existingReview, onSubmit }: Props) {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <Pressable
-        style={[styles.submitBtn, submitting && styles.submitBtnDisabled]}
+      <Button
+        title={existingReview ? 'Update Review' : 'Submit Review'}
         onPress={handleSubmit}
-        disabled={submitting}
-      >
-        {submitting ? (
-          <ActivityIndicator color={colors.white} />
-        ) : (
-          <Text style={styles.submitText}>
-            {existingReview ? 'Update Review' : 'Submit Review'}
-          </Text>
-        )}
-      </Pressable>
+        loading={submitting}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { gap: spacing.sm },
-  textarea: {
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: 8,
-    padding: spacing.md,
-    fontSize: 14,
-    color: colors.gray900,
-    minHeight: 88,
-    textAlignVertical: 'top',
-  },
+  textarea: { minHeight: 88, textAlignVertical: 'top' },
   counter: { alignSelf: 'flex-end', fontSize: 11, color: colors.gray400 },
   error: { fontSize: 12, color: colors.danger600 },
-  submitBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  submitBtnDisabled: { opacity: 0.7 },
-  submitText: { color: colors.white, fontWeight: '600' },
 });

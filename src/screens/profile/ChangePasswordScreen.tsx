@@ -1,21 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from 'react-native';
 import { AccountStackParamList } from '@/navigation/types';
 import { changePassword } from '@/api/auth';
 import { isValidPassword } from '@/utils/validators';
 import { getErrorMessage, getFieldErrors, getStatusCode } from '@/utils/errorHelpers';
+import { Button, FormError, Input } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 /**
@@ -79,54 +70,39 @@ export function ChangePasswordScreen() {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={typography.h1}>Change Password</Text>
 
-        {formError ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>{formError}</Text>
-          </View>
-        ) : null}
+        <FormError message={formError} />
 
-        <View style={styles.field}>
-          <Text style={typography.label}>Current Password</Text>
-          <TextInput
-            style={[styles.input, fieldErrors.currentPassword && styles.inputError]}
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-            secureTextEntry
-            autoComplete="current-password"
-            placeholder="Leave blank if you signed up with Google or OTP"
-          />
-          {fieldErrors.currentPassword ? <Text style={styles.fieldError}>{fieldErrors.currentPassword}</Text> : null}
-        </View>
+        <Input
+          label="Current Password"
+          value={currentPassword}
+          onChangeText={setCurrentPassword}
+          error={fieldErrors.currentPassword}
+          secureTextEntry
+          autoComplete="current-password"
+          placeholder="Leave blank if you signed up with Google or OTP"
+        />
 
-        <View style={styles.field}>
-          <Text style={typography.label}>New Password</Text>
-          <TextInput
-            style={[styles.input, fieldErrors.newPassword && styles.inputError]}
-            value={newPassword}
-            onChangeText={setNewPassword}
-            secureTextEntry
-            autoComplete="new-password"
-            placeholder="••••••••"
-          />
-          {fieldErrors.newPassword ? <Text style={styles.fieldError}>{fieldErrors.newPassword}</Text> : null}
-        </View>
+        <Input
+          label="New Password"
+          value={newPassword}
+          onChangeText={setNewPassword}
+          error={fieldErrors.newPassword}
+          secureTextEntry
+          autoComplete="new-password"
+          placeholder="••••••••"
+        />
 
-        <View style={styles.field}>
-          <Text style={typography.label}>Confirm New Password</Text>
-          <TextInput
-            style={[styles.input, fieldErrors.confirmPassword && styles.inputError]}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            autoComplete="new-password"
-            placeholder="••••••••"
-          />
-          {fieldErrors.confirmPassword ? <Text style={styles.fieldError}>{fieldErrors.confirmPassword}</Text> : null}
-        </View>
+        <Input
+          label="Confirm New Password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          error={fieldErrors.confirmPassword}
+          secureTextEntry
+          autoComplete="new-password"
+          placeholder="••••••••"
+        />
 
-        <Pressable style={[styles.primaryBtn, submitting && styles.btnDisabled]} onPress={handleSubmit} disabled={submitting}>
-          {submitting ? <ActivityIndicator color={colors.white} /> : <Text style={styles.primaryBtnText}>Update Password</Text>}
-        </Pressable>
+        <Button title="Update Password" onPress={handleSubmit} loading={submitting} style={styles.submitBtn} />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -135,27 +111,5 @@ export function ChangePasswordScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
   container: { padding: spacing.xl, gap: spacing.md, backgroundColor: colors.white },
-  field: { gap: spacing.xs },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    color: colors.gray900,
-  },
-  inputError: { borderColor: colors.danger600 },
-  fieldError: { fontSize: 12, color: colors.danger600 },
-  errorBanner: { backgroundColor: colors.danger50, borderRadius: 8, padding: spacing.md },
-  errorBannerText: { color: colors.danger700, fontSize: 13 },
-  primaryBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  btnDisabled: { opacity: 0.7 },
-  primaryBtnText: { color: colors.white, fontWeight: '600' },
+  submitBtn: { marginTop: spacing.md },
 });

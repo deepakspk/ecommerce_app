@@ -1,17 +1,29 @@
 import { useCallback, useState } from 'react';
 import { NavigationProp, useFocusEffect, useNavigation } from '@react-navigation/native';
-import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { CartStackParamList } from '@/navigation/types';
 import { getOrders, cancelOrder } from '@/api/orders';
-import { OrderStatusBadge } from '@/components/OrderStatusBadge';
-import { EmptyState } from '@/components/EmptyState';
 import { getErrorMessage } from '@/utils/errorHelpers';
 import { Order } from '@/types/order';
-import { colors, radius, spacing, typography } from '@/theme';
+import { Badge, Card, EmptyState, FormError, LoadingSkeleton } from '@/components/ui';
+import { colors, spacing, typography } from '@/theme';
 
 type FetchState = 'loading' | 'ready' | 'error';
 
 const CANCELLABLE_STATUSES = ['PENDING', 'CONFIRMED'];
+
+function OrderRowSkeleton() {
+  return (
+    <View style={styles.skeletonCard}>
+      <View style={styles.skeletonHeader}>
+        <LoadingSkeleton width={90} height={12} />
+        <LoadingSkeleton width={64} height={18} style={{ borderRadius: 999 }} />
+      </View>
+      <LoadingSkeleton width="40%" height={12} />
+      <LoadingSkeleton width={70} height={16} />
+    </View>
+  );
+}
 
 /** Re-fetches on every focus, not just mount — status can change server-side while the user is elsewhere (01-DOCUMENTATION.md Prompt 7 best practice). */
 export function OrdersListScreen() {
@@ -65,8 +77,13 @@ export function OrdersListScreen() {
 
   if (state === 'loading') {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator color={colors.brand600} size="large" />
+      <View style={styles.flex}>
+        <Text style={[typography.h1, styles.title]}>My Orders</Text>
+        <View style={styles.list}>
+          {[1, 2, 3, 4].map((i) => (
+            <OrderRowSkeleton key={i} />
+          ))}
+        </View>
       </View>
     );
   }
@@ -87,10 +104,10 @@ export function OrdersListScreen() {
         }
         ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
         renderItem={({ item }) => (
-          <Pressable style={styles.card} onPress={() => navigation.navigate('OrderDetail', { orderId: item._id })}>
+          <Card onPress={() => navigation.navigate('OrderDetail', { orderId: item._id })}>
             <View style={styles.cardHeader}>
               <Text style={typography.label}>{new Date(item.createdAt).toLocaleDateString()}</Text>
-              <OrderStatusBadge kind="order" status={item.status} />
+              <Badge kind="order" status={item.status} />
             </View>
             <Text style={typography.body}>{item.items.length} item(s)</Text>
             <Text style={typography.priceList}>Rs. {item.total.toLocaleString()}</Text>
@@ -100,20 +117,16 @@ export function OrdersListScreen() {
                 onPress={() => handleCancel(item)}
                 disabled={cancellingId === item._id}
               >
-                {cancellingId === item._id ? (
-                  <ActivityIndicator size="small" color={colors.danger600} />
-                ) : (
-                  <Text style={styles.cancelText}>Cancel Order</Text>
-                )}
+                <Text style={styles.cancelText}>{cancellingId === item._id ? 'Cancelling…' : 'Cancel Order'}</Text>
               </Pressable>
             ) : null}
-          </Pressable>
+          </Card>
         )}
       />
 
       {error ? (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.errorBannerWrap}>
+          <FormError message={error} />
         </View>
       ) : null}
     </View>
@@ -122,25 +135,18 @@ export function OrdersListScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.white },
-  list: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  list: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
   title: { marginBottom: spacing.md },
-  card: {
-    borderWidth: 1,
-    borderColor: colors.gray200,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.xs,
-  },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cancelBtn: { alignSelf: 'flex-start', marginTop: spacing.xs },
   cancelText: { color: colors.danger600, fontWeight: '600', fontSize: 13 },
-  errorBanner: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
+  errorBannerWrap: { marginHorizontal: spacing.lg, marginBottom: spacing.sm },
+  skeletonCard: {
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderRadius: 12,
     padding: spacing.md,
-    borderRadius: 8,
-    backgroundColor: colors.danger50,
+    gap: spacing.sm,
   },
-  errorText: { color: colors.danger700, fontSize: 13 },
+  skeletonHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

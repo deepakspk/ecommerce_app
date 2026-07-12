@@ -6,9 +6,9 @@ import { CartStackParamList, MainTabParamList } from '@/navigation/types';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { CartLineItem } from '@/components/CartLineItem';
-import { EmptyState } from '@/components/EmptyState';
 import { getErrorMessage } from '@/utils/errorHelpers';
 import { CartItem } from '@/types/cart';
+import { Button, EmptyState, FormError } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 /**
@@ -129,8 +129,8 @@ export function CartScreen() {
       />
 
       {mutationError ? (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{mutationError}</Text>
+        <View style={styles.errorBannerWrap}>
+          <FormError message={mutationError} />
         </View>
       ) : null}
 
@@ -139,9 +139,7 @@ export function CartScreen() {
           <Text style={typography.body}>Subtotal</Text>
           <Text style={typography.priceDetail}>Rs. {subtotal.toLocaleString()}</Text>
         </View>
-        <Pressable style={styles.checkoutBtn} onPress={handleCheckout}>
-          <Text style={styles.checkoutText}>{user ? 'Proceed to Checkout' : 'Log in to Checkout'}</Text>
-        </Pressable>
+        <Button title={user ? 'Proceed to Checkout' : 'Log in to Checkout'} onPress={handleCheckout} />
       </View>
     </View>
   );
@@ -160,14 +158,7 @@ const styles = StyleSheet.create({
   clearText: { color: colors.danger600, fontWeight: '600', fontSize: 13 },
   ordersLink: { alignItems: 'center', paddingVertical: spacing.md },
   ordersLinkText: { color: colors.brand600, fontWeight: '600', fontSize: 13 },
-  errorBanner: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    padding: spacing.md,
-    borderRadius: 8,
-    backgroundColor: colors.danger50,
-  },
-  errorText: { color: colors.danger700, fontSize: 13 },
+  errorBannerWrap: { marginHorizontal: spacing.lg, marginBottom: spacing.sm },
   footer: {
     padding: spacing.lg,
     gap: spacing.md,
@@ -176,11 +167,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   subtotalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  checkoutBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  checkoutText: { color: colors.white, fontWeight: '600' },
 });

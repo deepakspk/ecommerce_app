@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CartStackParamList } from '@/navigation/types';
 import { verifyKhalti, verifyEsewa } from '@/api/payments';
 import { getErrorMessage } from '@/utils/errorHelpers';
+import { Button } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 const KHALTI_CALLBACK_MARKER = '/payment/khalti/callback';
@@ -146,9 +147,11 @@ export function PaymentWebViewScreen() {
           <Text style={typography.muted}>
             Your order was created and may still be pending payment — check its status from Order Detail.
           </Text>
-          <Pressable style={styles.retryBtn} onPress={() => navigation.replace('OrderDetail', { orderId })}>
-            <Text style={styles.retryText}>Go to Order Detail</Text>
-          </Pressable>
+          <Button
+            title="Go to Order Detail"
+            onPress={() => navigation.replace('OrderDetail', { orderId })}
+            fullWidth={false}
+          />
         </View>
       ) : (
         <WebView
@@ -192,8 +195,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   errorText: { color: colors.danger700, fontSize: 15, fontWeight: '600', textAlign: 'center' },
-  retryBtn: { backgroundColor: colors.brand600, borderRadius: 8, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
-  retryText: { color: colors.white, fontWeight: '600' },
   verifyingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.6)',

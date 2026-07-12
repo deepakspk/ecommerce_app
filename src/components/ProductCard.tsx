@@ -1,11 +1,11 @@
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { ProductSummary } from '@/types/product';
 import { useWishlist } from '@/hooks/useWishlist';
 import { WishlistButton } from './WishlistButton';
 import { cloudinaryUrl } from '@/utils/cloudinary';
 import { resolveAssetUrl } from '@/utils/assetUrl';
+import { StarRating } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/theme';
 
 const DEFAULT_WIDTH = 140;
@@ -69,7 +69,7 @@ export function ProductCard({ product, onPress, width = DEFAULT_WIDTH }: Props) 
 
       {product.reviewCount > 0 ? (
         <View style={styles.ratingRow}>
-          <Ionicons name="star" size={12} color={colors.warning600} />
+          <StarRating rating={product.averageRating ?? 0} size={12} maxStars={1} />
           <Text style={styles.ratingText}>
             {(product.averageRating ?? 0).toFixed(1)} ({product.reviewCount})
           </Text>

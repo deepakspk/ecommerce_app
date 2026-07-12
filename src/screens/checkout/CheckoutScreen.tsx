@@ -15,7 +15,8 @@ import { PaymentMethodPicker, SelectablePaymentMethod } from '@/components/Payme
 import { getDiscountedPrice } from '@/utils/pricing';
 import { getErrorMessage } from '@/utils/errorHelpers';
 import { Address } from '@/types/address';
-import { colors, radius, spacing, typography } from '@/theme';
+import { Button, EmptyState, FormError } from '@/components/ui';
+import { colors, spacing, typography } from '@/theme';
 
 type FetchState = 'loading' | 'ready' | 'error';
 
@@ -155,7 +156,7 @@ export function CheckoutScreen() {
   if (cart.items.length === 0 && !placingOrder) {
     return (
       <View style={styles.center}>
-        <Text style={typography.body}>Your cart is empty.</Text>
+        <EmptyState icon="cart-outline" title="Your cart is empty" message="Add items to your cart before checking out." />
       </View>
     );
   }
@@ -177,9 +178,11 @@ export function CheckoutScreen() {
         ) : addressesState === 'error' ? (
           <Text style={styles.errorText}>Couldn&apos;t load addresses.</Text>
         ) : addresses.length === 0 ? (
-          <Pressable style={styles.addAddressBtn} onPress={() => navigation.navigate('AddressForm', undefined)}>
-            <Text style={styles.addAddressText}>+ Add a delivery address</Text>
-          </Pressable>
+          <Button
+            title="+ Add a delivery address"
+            variant="secondary"
+            onPress={() => navigation.navigate('AddressForm', undefined)}
+          />
         ) : (
           <View style={{ gap: spacing.sm }}>
             {addresses.map((address) => (
@@ -256,19 +259,9 @@ export function CheckoutScreen() {
         </View>
       </View>
 
-      {placeOrderError ? (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorBannerText}>{placeOrderError}</Text>
-        </View>
-      ) : null}
+      <FormError message={placeOrderError} />
 
-      <Pressable
-        style={[styles.placeOrderBtn, (placingOrder || !selectedAddress) && styles.placeOrderBtnDisabled]}
-        onPress={handlePlaceOrder}
-        disabled={placingOrder || !selectedAddress}
-      >
-        {placingOrder ? <ActivityIndicator color={colors.white} /> : <Text style={styles.placeOrderText}>Place Order</Text>}
-      </Pressable>
+      <Button title="Place Order" onPress={handlePlaceOrder} loading={placingOrder} disabled={!selectedAddress} />
     </ScrollView>
   );
 }
@@ -281,27 +274,9 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   linkText: { color: colors.brand600, fontWeight: '600', fontSize: 13 },
   errorText: { color: colors.danger600, fontSize: 13 },
-  addAddressBtn: {
-    borderWidth: 1,
-    borderColor: colors.brand600,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  addAddressText: { color: colors.brand600, fontWeight: '600' },
   couponApplied: { color: colors.success700, fontSize: 13 },
   couponStale: { color: colors.warning700, fontSize: 13 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 2 },
   discountText: { color: colors.success700 },
   divider: { height: 1, backgroundColor: colors.gray100, marginVertical: spacing.xs },
-  errorBanner: { backgroundColor: colors.danger50, borderRadius: 8, padding: spacing.md },
-  errorBannerText: { color: colors.danger700, fontSize: 13 },
-  placeOrderBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  placeOrderBtnDisabled: { opacity: 0.7 },
-  placeOrderText: { color: colors.white, fontWeight: '600' },
 });

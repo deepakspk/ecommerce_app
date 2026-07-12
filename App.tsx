@@ -7,6 +7,7 @@ import { CategoriesProvider } from '@/context/CategoriesContext';
 import { CompanySettingsProvider } from '@/context/CompanySettingsContext';
 import { CartProvider } from '@/context/CartContext';
 import { WishlistProvider } from '@/context/WishlistContext';
+import { ToastHost } from '@/components/ui';
 
 // react-native-screens improves navigation perf, especially on mid-range Android
 // devices common in the target market (02-REACT-NATIVE-PROMPTS.md Prompt 1,
@@ -36,6 +37,7 @@ export default function App() {
             <CartProvider>
               <WishlistProvider>
                 <RootNavigator />
+                <ToastHost />
               </WishlistProvider>
             </CartProvider>
           </AuthProvider>

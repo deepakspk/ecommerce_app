@@ -11,7 +11,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { AccountStackParamList } from '@/navigation/types';
@@ -20,6 +19,7 @@ import { updateProfile } from '@/api/auth';
 import { isValidEmail, isValidNepaliPhone } from '@/utils/validators';
 import { getErrorMessage, getFieldErrors } from '@/utils/errorHelpers';
 import { Avatar } from '@/components/Avatar';
+import { Button, FormError, Input } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
 /**
@@ -103,11 +103,7 @@ export function EditProfileScreen() {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={typography.h1}>Edit Profile</Text>
 
-        {formError ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>{formError}</Text>
-          </View>
-        ) : null}
+        <FormError message={formError} />
 
         <Pressable style={styles.avatarWrap} onPress={handlePickAvatar} disabled={avatarUploading}>
           <Avatar uri={localAvatarUri ?? user.avatarUrl} name={user.name} size={88} />
@@ -122,40 +118,29 @@ export function EditProfileScreen() {
           )}
         </Pressable>
 
-        <View style={styles.field}>
-          <Text style={typography.label}>Name</Text>
-          <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Your name" />
-        </View>
+        <Input label="Name" value={name} onChangeText={setName} placeholder="Your name" />
 
-        <View style={styles.field}>
-          <Text style={typography.label}>Email</Text>
-          <TextInput
-            style={[styles.input, fieldErrors.email && styles.inputError]}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            placeholder="you@example.com"
-          />
-          {fieldErrors.email ? <Text style={styles.fieldError}>{fieldErrors.email}</Text> : null}
-        </View>
+        <Input
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          error={fieldErrors.email}
+          autoCapitalize="none"
+          autoComplete="email"
+          keyboardType="email-address"
+          placeholder="you@example.com"
+        />
 
-        <View style={styles.field}>
-          <Text style={typography.label}>Phone</Text>
-          <TextInput
-            style={[styles.input, fieldErrors.phone && styles.inputError]}
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-            placeholder="98XXXXXXXX"
-          />
-          {fieldErrors.phone ? <Text style={styles.fieldError}>{fieldErrors.phone}</Text> : null}
-        </View>
+        <Input
+          label="Phone"
+          value={phone}
+          onChangeText={setPhone}
+          error={fieldErrors.phone}
+          keyboardType="phone-pad"
+          placeholder="98XXXXXXXX"
+        />
 
-        <Pressable style={[styles.primaryBtn, submitting && styles.btnDisabled]} onPress={handleSave} disabled={submitting}>
-          {submitting ? <ActivityIndicator color={colors.white} /> : <Text style={styles.primaryBtnText}>Save Changes</Text>}
-        </Pressable>
+        <Button title="Save Changes" onPress={handleSave} loading={submitting} style={styles.saveBtn} />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -182,27 +167,5 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   avatarEditText: { color: colors.white, fontSize: 11, fontWeight: '600' },
-  field: { gap: spacing.xs },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    color: colors.gray900,
-  },
-  inputError: { borderColor: colors.danger600 },
-  fieldError: { fontSize: 12, color: colors.danger600 },
-  errorBanner: { backgroundColor: colors.danger50, borderRadius: 8, padding: spacing.md },
-  errorBannerText: { color: colors.danger700, fontSize: 13 },
-  primaryBtn: {
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  btnDisabled: { opacity: 0.7 },
-  primaryBtnText: { color: colors.white, fontWeight: '600' },
+  saveBtn: { marginTop: spacing.md },
 });
