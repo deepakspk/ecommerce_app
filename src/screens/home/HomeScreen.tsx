@@ -16,6 +16,7 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { ProductRail } from '@/components/ProductRail';
 import { RecentlyViewedRail } from '@/components/RecentlyViewedRail';
 import { SearchBar } from '@/components/SearchBar';
+import { TrustBadges } from '@/components/TrustBadges';
 import { resolveAssetUrl } from '@/utils/assetUrl';
 import { cloudinaryUrl } from '@/utils/cloudinary';
 import { colors, spacing, typography } from '@/theme';
@@ -168,7 +169,7 @@ export function HomeScreen() {
         {categoriesError ? (
           <InlineRetry message={categoriesError} onRetry={refreshCategories} />
         ) : categories.length > 0 ? (
-          <View style={styles.categoryGrid}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
             {categories.map((item) => (
               <CategoryTile
                 key={item.id}
@@ -176,11 +177,13 @@ export function HomeScreen() {
                 onPress={() => handlePressCategory(item.slug, item.name)}
               />
             ))}
-          </View>
+          </ScrollView>
         ) : !categoriesLoading ? (
           <Text style={[typography.muted, styles.sectionTitle]}>No categories yet.</Text>
         ) : null}
       </View>
+
+      <TrustBadges />
 
       {rails.map((rail, index) =>
         rail.state === 'error' ? (
@@ -230,11 +233,10 @@ const styles = StyleSheet.create({
   logo: { width: LOGO_SIZE, height: LOGO_SIZE },
   section: { gap: spacing.sm },
   sectionTitle: { paddingHorizontal: spacing.lg },
-  categoryGrid: {
+  categoryRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: spacing.md,
-    rowGap: spacing.md,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
   retryRow: {
     flexDirection: 'row',

@@ -30,7 +30,7 @@ export function SearchBar({ onSubmit, placeholder = 'Search products' }: Props) 
         onSubmitEditing={handleSubmit}
       />
       <Pressable onPress={handleSubmit} hitSlop={8}>
-        <Ionicons name="arrow-forward-circle" size={22} color={colors.brand600} />
+        <Ionicons name="arrow-forward-circle" size={24} color={colors.brand600} />
       </Pressable>
     </View>
   );
@@ -44,10 +44,10 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    backgroundColor: colors.white,
+    borderRadius: radius.full,
+    borderWidth: 1.5,
+    borderColor: colors.brand100,
+    backgroundColor: colors.gray50,
   },
   input: { flex: 1, fontSize: 14, color: colors.gray900 },
 });

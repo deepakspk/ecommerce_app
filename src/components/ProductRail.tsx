@@ -1,4 +1,5 @@
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { ProductSummary } from '@/types/product';
 import { ProductCard } from './ProductCard';
 import { colors, spacing, typography } from '@/theme';
@@ -16,7 +17,10 @@ export function ProductRail({ title, products, onPressProduct, onSeeAll }: Props
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={typography.h2}>{title}</Text>
+        <View style={styles.titleRow}>
+          <Ionicons name="flash-outline" size={18} color={colors.brand600} />
+          <Text style={typography.h2}>{title}</Text>
+        </View>
         {onSeeAll ? (
           <Pressable onPress={onSeeAll} hitSlop={8}>
             <Text style={styles.seeAll}>See All</Text>
@@ -45,6 +49,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
   },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   seeAll: { color: colors.brand600, fontSize: 13, fontWeight: '600' },
   list: { paddingHorizontal: spacing.lg, gap: spacing.md },
 });
