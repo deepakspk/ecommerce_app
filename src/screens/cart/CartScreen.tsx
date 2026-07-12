@@ -91,6 +91,9 @@ export function CartScreen() {
             navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('HomeTab', { screen: 'Home' })
           }
         />
+        <Pressable style={styles.ordersLink} onPress={() => navigation.navigate('OrdersList')}>
+          <Text style={styles.ordersLinkText}>View My Orders</Text>
+        </Pressable>
       </View>
     );
   }
@@ -104,11 +107,16 @@ export function CartScreen() {
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={typography.h1}>Cart</Text>
-            {items.length > 0 ? (
-              <Pressable onPress={handleClear}>
-                <Text style={styles.clearText}>Clear all</Text>
+            <View style={styles.headerActions}>
+              <Pressable onPress={() => navigation.navigate('OrdersList')}>
+                <Text style={styles.ordersLinkText}>My Orders</Text>
               </Pressable>
-            ) : null}
+              {items.length > 0 ? (
+                <Pressable onPress={handleClear}>
+                  <Text style={styles.clearText}>Clear all</Text>
+                </Pressable>
+              ) : null}
+            </View>
           </View>
         }
         renderItem={({ item }) => (
@@ -148,7 +156,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
   },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   clearText: { color: colors.danger600, fontWeight: '600', fontSize: 13 },
+  ordersLink: { alignItems: 'center', paddingVertical: spacing.md },
+  ordersLinkText: { color: colors.brand600, fontWeight: '600', fontSize: 13 },
   errorBanner: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.sm,

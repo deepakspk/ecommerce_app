@@ -5,12 +5,19 @@ import { CheckoutScreen } from '@/screens/checkout/CheckoutScreen';
 import { AddressListScreen } from '@/screens/checkout/AddressListScreen';
 import { AddressFormScreen } from '@/screens/checkout/AddressFormScreen';
 import { PaymentWebViewScreen } from '@/screens/checkout/PaymentWebViewScreen';
+import { OrdersListScreen } from '@/screens/orders/OrdersListScreen';
+import { OrderDetailScreen } from '@/screens/orders/OrderDetailScreen';
+import { ReturnRequestScreen } from '@/screens/orders/ReturnRequestScreen';
 import { AuthGuard } from '@/components/AuthGuard';
-import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
 
 const Stack = createNativeStackNavigator<CartStackParamList>();
 
-/** Checkout (and everything reachable from it) requires login — wrapped in `AuthGuard` (Prompt 2). OrderDetail is a Prompt 7 screen, stubbed here. */
+/**
+ * Checkout, addresses, and orders all require login — each wrapped in
+ * `AuthGuard` (Prompt 2). Orders lives here temporarily (a proper Account-tab
+ * entry point lands in Prompt 8) since Checkout already needed OrderDetail
+ * wired in from Prompt 6.
+ */
 export function CartStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -37,7 +44,27 @@ export function CartStack() {
         )}
       </Stack.Screen>
       <Stack.Screen name="PaymentWebView" component={PaymentWebViewScreen} />
-      <Stack.Screen name="OrderDetail">{() => <PlaceholderScreen label="Order Detail" />}</Stack.Screen>
+      <Stack.Screen name="OrdersList">
+        {() => (
+          <AuthGuard>
+            <OrdersListScreen />
+          </AuthGuard>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="OrderDetail">
+        {() => (
+          <AuthGuard>
+            <OrderDetailScreen />
+          </AuthGuard>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="ReturnRequest">
+        {() => (
+          <AuthGuard>
+            <ReturnRequestScreen />
+          </AuthGuard>
+        )}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 }

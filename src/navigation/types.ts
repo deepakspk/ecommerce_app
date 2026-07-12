@@ -59,12 +59,14 @@ export type CartStackParamList = {
     esewaFormUrl?: string;
     esewaFields?: EsewaFields;
   };
+  OrdersList: undefined;
   OrderDetail: { orderId: string };
+  ReturnRequest: { orderId: string };
 };
 
 export type AccountStackParamList = {
   Account: undefined;
-  // EditProfile, ChangePassword, AddressList, OrdersList, Terms — added in Prompt 7 / Prompt 8
+  // EditProfile, ChangePassword, AddressList, Terms — added in Prompt 8
 };
 
 export type MainTabParamList = {
