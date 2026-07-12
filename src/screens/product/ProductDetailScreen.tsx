@@ -16,6 +16,8 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { HomeStackParamList, RootStackParamList } from '@/navigation/types';
 import { useAuth } from '@/hooks/useAuth';
+import { useCart } from '@/hooks/useCart';
+import { useWishlist } from '@/hooks/useWishlist';
 import { getProductBySlug, ProductDetailResponse } from '@/api/products';
 import { getReviewEligibility, getReviews, submitReview } from '@/api/reviews';
 import { getQuestions, submitQuestion } from '@/api/questions';
@@ -23,6 +25,7 @@ import { createStockAlert } from '@/api/stockAlerts';
 import { addRecentlyViewed } from '@/utils/recentlyViewed';
 import { getDiscountedPrice } from '@/utils/pricing';
 import { cloudinaryUrl } from '@/utils/cloudinary';
+import { resolveAssetUrl } from '@/utils/assetUrl';
 import { getErrorMessage } from '@/utils/errorHelpers';
 import { Review, ReviewEligibility } from '@/types/review';
 import { User } from '@/types/user';
@@ -36,6 +39,7 @@ import { QuestionForm } from '@/components/QuestionForm';
 import { ProductRail } from '@/components/ProductRail';
 import { RecentlyViewedRail } from '@/components/RecentlyViewedRail';
 import { EmptyState } from '@/components/EmptyState';
+import { WishlistButton } from '@/components/WishlistButton';
 import { colors, radius, spacing, typography } from '@/theme';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -144,6 +148,8 @@ export function ProductDetailScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const rootNavigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { user } = useAuth();
+  const { addItem } = useCart();
+  const { isWishlisted, toggleItem } = useWishlist();
   const { productSlug } = route.params;
 
   const [data, setData] = useState<ProductDetailResponse | null>(null);
@@ -153,7 +159,8 @@ export function ProductDetailScreen() {
   const [selectedColor, setSelectedColor] = useState<string | undefined>();
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<Tab>('description');
-  const [wishlisted, setWishlisted] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [addToCartError, setAddToCartError] = useState<string | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
 
   const [eligibility, setEligibility] = useState<ReviewEligibility | null>(null);
@@ -273,9 +280,41 @@ export function ProductDetailScreen() {
     [data],
   );
 
-  const handleAddToCart = useCallback(() => {
-    Alert.alert('Coming soon', 'Cart wiring lands in Prompt 5.');
-  }, []);
+  const handleAddToCart = useCallback(async () => {
+    if (!resolvedVariant || !data) return;
+    const product = data.product;
+    setAddToCartError(null);
+    setAddingToCart(true);
+    try {
+      await addItem(
+        {
+          _id: resolvedVariant._id,
+          productId: {
+            _id: product._id,
+            name: product.name,
+            slug: product.slug,
+            basePrice: product.basePrice,
+            discountType: product.discountType,
+            discountValue: product.discountValue,
+            images: product.images,
+          },
+          size: resolvedVariant.size,
+          color: resolvedVariant.color,
+          sku: resolvedVariant.sku,
+          price: resolvedVariant.price,
+          stockQuantity: resolvedVariant.stockQuantity,
+          imageUrl: resolvedVariant.imageUrl,
+          isDefault: resolvedVariant.isDefault,
+        },
+        quantity,
+      );
+      Alert.alert('Added to cart', `${product.name} has been added to your cart.`);
+    } catch (err) {
+      setAddToCartError(getErrorMessage(err));
+    } finally {
+      setAddingToCart(false);
+    }
+  }, [resolvedVariant, data, quantity, addItem]);
 
   const handleNotifyMe = useCallback(async () => {
     if (!user) {
@@ -338,7 +377,7 @@ export function ProductDetailScreen() {
           }}
           renderItem={({ item }) => (
             <Image
-              source={{ uri: cloudinaryUrl(item, SCREEN_WIDTH) }}
+              source={{ uri: cloudinaryUrl(resolveAssetUrl(item), SCREEN_WIDTH) }}
               style={styles.galleryImage}
               contentFit="cover"
             />
@@ -357,13 +396,7 @@ export function ProductDetailScreen() {
       <View style={styles.infoSection}>
         <View style={styles.nameRow}>
           <Text style={[typography.h1, styles.name]}>{product.name}</Text>
-          <Pressable onPress={() => setWishlisted((w) => !w)} hitSlop={8}>
-            <Ionicons
-              name={wishlisted ? 'heart' : 'heart-outline'}
-              size={26}
-              color={wishlisted ? colors.danger600 : colors.gray400}
-            />
-          </Pressable>
+          <WishlistButton active={isWishlisted(product._id)} onPress={() => toggleItem(product)} size={26} />
         </View>
 
         <View style={styles.priceRow}>
@@ -409,8 +442,21 @@ export function ProductDetailScreen() {
                   <Ionicons name="add" size={18} color={colors.gray700} />
                 </Pressable>
               </View>
-              <Pressable style={styles.addToCartBtn} onPress={handleAddToCart}>
-                <Text style={styles.addToCartText}>Add to Cart</Text>
+              {addToCartError ? (
+                <View style={styles.errorBanner}>
+                  <Text style={styles.errorBannerText}>{addToCartError}</Text>
+                </View>
+              ) : null}
+              <Pressable
+                style={[styles.addToCartBtn, addingToCart && styles.addToCartBtnDisabled]}
+                onPress={handleAddToCart}
+                disabled={addingToCart}
+              >
+                {addingToCart ? (
+                  <ActivityIndicator color={colors.white} />
+                ) : (
+                  <Text style={styles.addToCartText}>Add to Cart</Text>
+                )}
               </Pressable>
             </>
           ) : (
@@ -593,7 +639,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     alignItems: 'center',
   },
+  addToCartBtnDisabled: { opacity: 0.7 },
   addToCartText: { color: colors.white, fontWeight: '600' },
+  errorBanner: { backgroundColor: colors.danger50, borderRadius: 8, padding: spacing.md },
+  errorBannerText: { color: colors.danger700, fontSize: 13 },
   notifyBtn: {
     backgroundColor: colors.gray900,
     borderRadius: 8,

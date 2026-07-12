@@ -14,6 +14,7 @@ import { Image } from 'expo-image';
 import { Banner } from '@/types/banner';
 import { HomeStackParamList } from '@/navigation/types';
 import { cloudinaryUrl } from '@/utils/cloudinary';
+import { resolveAssetUrl } from '@/utils/assetUrl';
 import { colors, radius, spacing } from '@/theme';
 
 const AUTO_ADVANCE_MS = 5000;
@@ -82,7 +83,7 @@ export function BannerCarousel({ banners }: Props) {
         renderItem={({ item }) => (
           <Pressable onPress={() => handlePress(item)}>
             <Image
-              source={{ uri: cloudinaryUrl(item.imageUrl, SCREEN_WIDTH) }}
+              source={{ uri: cloudinaryUrl(resolveAssetUrl(item.imageUrl), SCREEN_WIDTH) }}
               style={styles.image}
               contentFit="cover"
             />

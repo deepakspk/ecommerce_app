@@ -1,15 +1,7 @@
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { HomeStackParamList } from '@/navigation/types';
 import { useCategories } from '@/hooks/useCategories';
@@ -24,11 +16,11 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { ProductRail } from '@/components/ProductRail';
 import { RecentlyViewedRail } from '@/components/RecentlyViewedRail';
 import { SearchBar } from '@/components/SearchBar';
+import { resolveAssetUrl } from '@/utils/assetUrl';
 import { colors, spacing, typography } from '@/theme';
 
 const MAX_RAILS = 4;
 const RAIL_LIMIT = 8;
-const CATEGORY_COLUMNS = 4;
 
 type FetchState = 'loading' | 'ready' | 'error';
 
@@ -152,7 +144,11 @@ export function HomeScreen() {
     >
       <View style={styles.brandRow}>
         {company.logoUrl ? (
-          <Image source={{ uri: company.logoUrl }} style={styles.logo} contentFit="contain" />
+          <Image
+            source={{ uri: resolveAssetUrl(company.logoUrl) }}
+            style={styles.logo}
+            contentFit="contain"
+          />
         ) : null}
         <Text style={typography.h1}>{company.companyName ?? 'Store'}</Text>
       </View>
@@ -170,19 +166,15 @@ export function HomeScreen() {
         {categoriesError ? (
           <InlineRetry message={categoriesError} onRetry={refreshCategories} />
         ) : categories.length > 0 ? (
-          <FlatList
-            data={categories}
-            keyExtractor={(item) => item._id}
-            numColumns={CATEGORY_COLUMNS}
-            scrollEnabled={false}
-            contentContainerStyle={styles.categoryGrid}
-            renderItem={({ item }) => (
+          <View style={styles.categoryGrid}>
+            {categories.map((item) => (
               <CategoryTile
+                key={item.id}
                 category={item}
                 onPress={() => handlePressCategory(item.slug, item.name)}
               />
-            )}
-          />
+            ))}
+          </View>
         ) : !categoriesLoading ? (
           <Text style={[typography.muted, styles.sectionTitle]}>No categories yet.</Text>
         ) : null}
@@ -236,7 +228,12 @@ const styles = StyleSheet.create({
   logo: { width: 28, height: 28 },
   section: { gap: spacing.sm },
   sectionTitle: { paddingHorizontal: spacing.lg },
-  categoryGrid: { paddingHorizontal: spacing.md },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: spacing.md,
+    rowGap: spacing.md,
+  },
   retryRow: {
     flexDirection: 'row',
     alignItems: 'center',

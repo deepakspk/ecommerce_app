@@ -5,6 +5,8 @@ import { RootNavigator } from '@/navigation/RootNavigator';
 import { AuthProvider } from '@/context/AuthContext';
 import { CategoriesProvider } from '@/context/CategoriesContext';
 import { CompanySettingsProvider } from '@/context/CompanySettingsContext';
+import { CartProvider } from '@/context/CartContext';
+import { WishlistProvider } from '@/context/WishlistContext';
 
 // react-native-screens improves navigation perf, especially on mid-range Android
 // devices common in the target market (02-REACT-NATIVE-PROMPTS.md Prompt 1,
@@ -23,7 +25,7 @@ enableScreens();
  *             <WishlistProvider>  Prompt 5  — depends on useAuth()
  *               <RootNavigator />
  *
- * ThemeSettingsProvider/CartProvider/WishlistProvider land in their own prompts.
+ * ThemeSettingsProvider lands in Prompt 11.
  */
 export default function App() {
   return (
@@ -31,7 +33,11 @@ export default function App() {
       <CompanySettingsProvider>
         <CategoriesProvider>
           <AuthProvider>
-            <RootNavigator />
+            <CartProvider>
+              <WishlistProvider>
+                <RootNavigator />
+              </WishlistProvider>
+            </CartProvider>
           </AuthProvider>
         </CategoriesProvider>
       </CompanySettingsProvider>

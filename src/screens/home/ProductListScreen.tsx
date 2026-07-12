@@ -48,7 +48,7 @@ interface SelectedCategoryNode {
 function findCategoryNode(categories: Category[], slug: string): SelectedCategoryNode | null {
   for (const root of categories) {
     if (root.slug === slug) return { root };
-    const sub = root.subcategories?.find((s) => s.slug === slug);
+    const sub = root.children?.find((s) => s.slug === slug);
     if (sub) return { root, sub };
   }
   return null;
@@ -219,7 +219,7 @@ export function ProductListScreen() {
         />
         {categories.map((root) => (
           <FilterPill
-            key={root._id}
+            key={root.id}
             label={root.name}
             selected={selectedNode?.root.slug === root.slug}
             onPress={() => handleSelectRoot(root)}
@@ -227,15 +227,15 @@ export function ProductListScreen() {
         ))}
       </ScrollView>
 
-      {selectedNode?.root.subcategories && selectedNode.root.subcategories.length > 0 ? (
+      {selectedNode?.root.children && selectedNode.root.children.length > 0 ? (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.pillRow}
         >
-          {selectedNode.root.subcategories.map((sub) => (
+          {selectedNode.root.children.map((sub) => (
             <FilterPill
-              key={sub._id}
+              key={sub.id}
               label={sub.name}
               selected={selectedNode.sub?.slug === sub.slug}
               onPress={() => handleSelectSub(sub)}

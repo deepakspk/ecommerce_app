@@ -2,7 +2,10 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ProductSummary } from '@/types/product';
+import { useWishlist } from '@/hooks/useWishlist';
+import { WishlistButton } from './WishlistButton';
 import { cloudinaryUrl } from '@/utils/cloudinary';
+import { resolveAssetUrl } from '@/utils/assetUrl';
 import { colors, radius, spacing, typography } from '@/theme';
 
 const DEFAULT_WIDTH = 140;
@@ -21,13 +24,15 @@ interface Props {
 export function ProductCard({ product, onPress, width = DEFAULT_WIDTH }: Props) {
   const image = product.images[0]?.url;
   const hasDiscount = product.discountType !== null && product.finalPrice < product.basePrice;
+  const { isWishlisted, toggleItem } = useWishlist();
+  const wishlisted = isWishlisted(product._id);
 
   return (
     <Pressable style={[styles.container, { width }]} onPress={onPress}>
       <View style={[styles.imageWrap, { width, height: width }]}>
         {image ? (
           <Image
-            source={{ uri: cloudinaryUrl(image, width * 2) }}
+            source={{ uri: cloudinaryUrl(resolveAssetUrl(image), width * 2) }}
             style={styles.image}
             contentFit="cover"
           />
@@ -43,6 +48,12 @@ export function ProductCard({ product, onPress, width = DEFAULT_WIDTH }: Props) 
             </Text>
           </View>
         ) : null}
+        <WishlistButton
+          active={wishlisted}
+          onPress={() => toggleItem(product)}
+          size={16}
+          style={styles.wishlistBtn}
+        />
       </View>
 
       <Text style={[typography.h3, styles.name]} numberOfLines={2}>
@@ -83,6 +94,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   badgeText: { color: colors.white, fontSize: 10, fontWeight: '700' },
+  wishlistBtn: { position: 'absolute', top: spacing.xs, right: spacing.xs },
   name: { minHeight: 34 },
   priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.xs },
   strikePrice: { fontSize: 12, color: colors.gray500, textDecorationLine: 'line-through' },

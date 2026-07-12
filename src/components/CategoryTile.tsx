@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Category } from '@/types/category';
 import { cloudinaryUrl } from '@/utils/cloudinary';
+import { resolveAssetUrl } from '@/utils/assetUrl';
 import { colors, radius, spacing, typography } from '@/theme';
 
 const TILE_SIZE = 64;
@@ -17,7 +18,7 @@ export function CategoryTile({ category, onPress }: Props) {
     <Pressable style={styles.container} onPress={onPress}>
       {category.image ? (
         <Image
-          source={{ uri: cloudinaryUrl(category.image, TILE_SIZE * 2) }}
+          source={{ uri: cloudinaryUrl(resolveAssetUrl(category.image), TILE_SIZE * 2) }}
           style={styles.image}
           contentFit="cover"
         />

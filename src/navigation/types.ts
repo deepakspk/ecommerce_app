@@ -1,4 +1,6 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
+import { Address } from '@/types/address';
+import { EsewaFields } from '@/types/payment';
 
 /**
  * Central route param registry (01-DOCUMENTATION.md-aligned build spec,
@@ -42,11 +44,22 @@ export type CategoriesStackParamList = {
 
 export type WishlistStackParamList = {
   WishlistRoot: undefined;
+  ProductDetail: { productSlug: string };
 };
 
 export type CartStackParamList = {
   Cart: undefined;
-  // Checkout — added in Prompt 6
+  Checkout: undefined;
+  AddressList: undefined;
+  AddressForm: { address?: Address } | undefined;
+  PaymentWebView: {
+    gateway: 'KHALTI' | 'ESEWA';
+    orderId: string;
+    paymentUrl?: string;
+    esewaFormUrl?: string;
+    esewaFields?: EsewaFields;
+  };
+  OrderDetail: { orderId: string };
 };
 
 export type AccountStackParamList = {

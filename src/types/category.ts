@@ -1,14 +1,17 @@
-/** Mirrors the backend's Category model (01-DOCUMENTATION.md §5). */
+/**
+ * Mirrors the actual `GET /categories/tree` response shape, which differs
+ * from the rest of the API: this endpoint serializes `id` (not `_id`) and
+ * `children` (not `subcategories`), and `image` may be a relative path
+ * rather than an absolute URL (resolve via `resolveAssetUrl` before display).
+ */
 export interface Category {
-  _id: string;
+  id: string;
   name: string;
   slug: string;
   description?: string;
   image?: string;
-  parent: string | null;
   level: number;
   isActive: boolean;
   sortOrder: number;
-  /** Present on the nested `GET /categories/tree` response only. */
-  subcategories?: Category[];
+  children?: Category[];
 }
