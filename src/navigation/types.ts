@@ -64,9 +64,23 @@ export type CartStackParamList = {
   ReturnRequest: { orderId: string };
 };
 
+/**
+ * Reuses Prompt 6/7's Address Book, Orders, and payment-retry screens as the
+ * Account tab's entry points rather than duplicating them (mirrors the
+ * `HomeStack`/`CategoriesStack` pattern of each tab-stack owning its own
+ * route instance of a shared screen — 02-REACT-NATIVE-PROMPTS.md Prompt 8).
+ */
 export type AccountStackParamList = {
   Account: undefined;
-  // EditProfile, ChangePassword, AddressList, Terms — added in Prompt 8
+  EditProfile: undefined;
+  ChangePassword: undefined;
+  AddressList: undefined;
+  AddressForm: { address?: Address } | undefined;
+  OrdersList: undefined;
+  OrderDetail: { orderId: string };
+  ReturnRequest: { orderId: string };
+  PaymentWebView: CartStackParamList['PaymentWebView'];
+  Terms: undefined;
 };
 
 export type MainTabParamList = {
