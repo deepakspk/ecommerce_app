@@ -7,6 +7,7 @@ import { getOrder, cancelOrder, getReturnRequests } from '@/api/orders';
 import { initiateKhalti, initiateEsewa } from '@/api/payments';
 import { downloadInvoice } from '@/utils/downloadInvoice';
 import { getErrorMessage } from '@/utils/errorHelpers';
+import { variantLabel } from '@/utils/variantLabel';
 import { Order } from '@/types/order';
 import { ACTIVE_RETURN_STATUSES, ReturnRequest } from '@/types/return';
 import { Badge, Button, EmptyState, FormError } from '@/components/ui';
@@ -172,7 +173,7 @@ export function OrderDetailScreen() {
       <View style={styles.section}>
         <Text style={typography.h2}>Items</Text>
         {order.items.map((item, index) => {
-          const label = [item.size, item.color].filter((v) => v && v !== 'Default').join(' / ');
+          const label = variantLabel(item);
           return (
             <View key={`${item.variantId}-${index}`} style={styles.itemRow}>
               <View style={styles.itemIcon}>

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { OrderItem } from '@/types/order';
 import { ReturnRequestItem } from '@/types/return';
 import { QuantityStepper } from './QuantityStepper';
+import { variantLabel } from '@/utils/variantLabel';
 import { Card, Input } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
 
@@ -40,7 +41,7 @@ export function ReturnItemPicker({ items, onChange }: Props) {
     <View style={styles.container}>
       {items.map((item) => {
         const row = rows[item.variantId];
-        const label = [item.size, item.color].filter((v) => v && v !== 'Default').join(' / ');
+        const label = variantLabel(item);
         return (
           <Card key={item.variantId} style={styles.row}>
             <Pressable style={styles.checkboxRow} onPress={() => updateRow(item.variantId, { selected: !row.selected })}>

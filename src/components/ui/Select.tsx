@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Modal } from './Modal';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { colors, radius, spacing, typography } from '@/theme';
 
 export interface SelectProps {
@@ -34,10 +35,16 @@ export function Select({
 }: SelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  // Debounced so filtering a long static list (e.g. Nepal's 753 municipalities)
+  // on every keystroke stays smooth (02-REACT-NATIVE-PROMPTS.md Prompt 6).
+  const debouncedQuery = useDebouncedValue(query, 150);
 
   const filtered = useMemo(
-    () => (searchable && query ? options.filter((opt) => opt.toLowerCase().includes(query.trim().toLowerCase())) : options),
-    [options, query, searchable],
+    () =>
+      searchable && debouncedQuery
+        ? options.filter((opt) => opt.toLowerCase().includes(debouncedQuery.trim().toLowerCase()))
+        : options,
+    [options, debouncedQuery, searchable],
   );
 
   const handleSelect = (opt: string) => {

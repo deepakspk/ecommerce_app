@@ -2,6 +2,7 @@ import { enableScreens } from 'react-native-screens';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { RootNavigator } from '@/navigation/RootNavigator';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemeSettingsProvider } from '@/context/ThemeSettingsContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { CategoriesProvider } from '@/context/CategoriesContext';
@@ -60,7 +61,9 @@ export default function App() {
             <AuthProvider>
               <CartProvider>
                 <WishlistProvider>
-                  <RootNavigator />
+                  <ErrorBoundary>
+                    <RootNavigator />
+                  </ErrorBoundary>
                   <ToastHost />
                 </WishlistProvider>
               </CartProvider>

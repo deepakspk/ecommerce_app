@@ -17,10 +17,12 @@ import { ProductRail } from '@/components/ProductRail';
 import { RecentlyViewedRail } from '@/components/RecentlyViewedRail';
 import { SearchBar } from '@/components/SearchBar';
 import { resolveAssetUrl } from '@/utils/assetUrl';
+import { cloudinaryUrl } from '@/utils/cloudinary';
 import { colors, spacing, typography } from '@/theme';
 
 const MAX_RAILS = 4;
 const RAIL_LIMIT = 8;
+const LOGO_SIZE = 28;
 
 type FetchState = 'loading' | 'ready' | 'error';
 
@@ -145,7 +147,7 @@ export function HomeScreen() {
       <View style={styles.brandRow}>
         {company.logoUrl ? (
           <Image
-            source={{ uri: resolveAssetUrl(company.logoUrl) }}
+            source={{ uri: cloudinaryUrl(resolveAssetUrl(company.logoUrl), LOGO_SIZE * 2) }}
             style={styles.logo}
             contentFit="contain"
           />
@@ -225,7 +227,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
   },
-  logo: { width: 28, height: 28 },
+  logo: { width: LOGO_SIZE, height: LOGO_SIZE },
   section: { gap: spacing.sm },
   sectionTitle: { paddingHorizontal: spacing.lg },
   categoryGrid: {
