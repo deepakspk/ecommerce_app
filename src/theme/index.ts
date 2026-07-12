@@ -12,3 +12,4 @@ export const theme = {
 export type Theme = typeof theme;
 
 export { colors, spacing, radius, typography };
+export type { ColorPalette, ColorToken } from './colors';

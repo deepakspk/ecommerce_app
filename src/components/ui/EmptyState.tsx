@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Button } from './Button';
 import { colors, spacing, typography } from '@/theme';
 
 interface Props {
@@ -10,7 +11,12 @@ interface Props {
   onAction?: () => void;
 }
 
-/** Icon + title + message + optional action — replaces ad hoc empty/error text built per-screen. */
+/**
+ * Icon + title + message + optional action — replaces ad hoc empty/error
+ * text built per-screen. The action uses the shared `Button` (rather than
+ * its own local Pressable) so it also picks up the live brand color from
+ * `ThemeSettingsContext` (02-REACT-NATIVE-PROMPTS.md Prompt 11) for free.
+ */
 export function EmptyState({
   icon = 'file-tray-outline',
   title,
@@ -24,9 +30,7 @@ export function EmptyState({
       <Text style={[typography.h2, styles.title]}>{title}</Text>
       {message ? <Text style={[typography.muted, styles.message]}>{message}</Text> : null}
       {actionLabel && onAction ? (
-        <Pressable style={styles.actionBtn} onPress={onAction}>
-          <Text style={styles.actionText}>{actionLabel}</Text>
-        </Pressable>
+        <Button title={actionLabel} onPress={onAction} size="sm" fullWidth={false} style={styles.actionBtn} />
       ) : null}
     </View>
   );
@@ -41,12 +45,5 @@ const styles = StyleSheet.create({
   },
   title: { textAlign: 'center' },
   message: { textAlign: 'center' },
-  actionBtn: {
-    marginTop: spacing.sm,
-    backgroundColor: colors.brand600,
-    borderRadius: 8,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  actionText: { color: colors.white, fontWeight: '600' },
+  actionBtn: { marginTop: spacing.sm },
 });

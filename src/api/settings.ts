@@ -29,3 +29,17 @@ export interface CompanySettings {
 export function getCompanySettings() {
   return apiGet<{ company?: CompanySettings }>('/settings/company').then((data) => data.company ?? {});
 }
+
+/** Mirrors the backend's ThemeSettings singleton (01-DOCUMENTATION.md §5) — server returns its own defaults if unset. */
+export interface ThemeSettings {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  buttonColor: string;
+  textColor: string;
+  backgroundColor: string;
+}
+
+export function getThemeSettings() {
+  return apiGet<{ theme: ThemeSettings }>('/settings/theme').then((data) => data.theme);
+}

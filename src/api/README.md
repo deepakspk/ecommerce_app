@@ -64,7 +64,7 @@ All four endpoints covered: `initiateKhalti`, `verifyKhalti`, `initiateEsewa`, `
 | `POST /stock-alerts` | ✅ `createStockAlert` | |
 | `GET /banners` | ✅ `getBanners` | |
 | `GET /settings/company` | ✅ `getCompanySettings` | |
-| `GET /settings/theme` | ❌ (not yet) | Prompt 11's `ThemeSettingsContext` scope — not built yet. |
+| `GET /settings/theme` | ✅ `getThemeSettings` | Fetched once by `ThemeSettingsContext` (Prompt 11), derives a live brand50-800 ramp via `utils/colorShades.ts`. |
 | `GET /logistics/international-fee` | ✅ `getInternationalFee` | |
 | `GET /logistics/branches` | ✅ `getBranches` | |
 | `POST /logistics/rate` | ✅ `getRate` | |

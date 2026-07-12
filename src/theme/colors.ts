@@ -45,3 +45,5 @@ export const colors = {
 } as const;
 
 export type ColorToken = keyof typeof colors;
+/** Same key set as `colors`, but widened to plain `string` values — the live theme's derived brand shades aren't statically-known literals. */
+export type ColorPalette = Record<ColorToken, string>;

@@ -6,6 +6,7 @@ import { CategoriesStack } from './CategoriesStack';
 import { WishlistStack } from './WishlistStack';
 import { CartStack } from './CartStack';
 import { AccountStack } from './AccountStack';
+import { useThemeSettings } from '@/hooks/useThemeSettings';
 import { colors } from '@/theme';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -32,11 +33,13 @@ const LABELS: Record<keyof MainTabParamList, string> = {
  * (01-DOCUMENTATION.md-aligned build spec, Prompt 1's Navigation setup).
  */
 export function MainTabs() {
+  const { colors: liveColors } = useThemeSettings();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: colors.brand600,
+        tabBarActiveTintColor: liveColors.brand600,
         tabBarInactiveTintColor: colors.gray400,
         tabBarIcon: ({ color, size }) => (
           <Ionicons name={ICONS[route.name as keyof MainTabParamList]} size={size} color={color} />
