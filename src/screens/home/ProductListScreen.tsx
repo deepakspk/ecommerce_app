@@ -97,7 +97,9 @@ export function ProductListScreen() {
   const initialParams = route.params;
 
   const [searchText, setSearchText] = useState(initialParams?.search ?? '');
-  const [searchVisible, setSearchVisible] = useState(!!initialParams?.search);
+  const [searchVisible, setSearchVisible] = useState(
+    !!initialParams?.search || !!initialParams?.focusSearch,
+  );
   const debouncedSearch = useDebouncedValue(searchText, 400);
 
   const [categorySlug, setCategorySlug] = useState(initialParams?.categorySlug);

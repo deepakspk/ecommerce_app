@@ -11,27 +11,36 @@ import {
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Banner } from '@/types/banner';
 import { HomeStackParamList } from '@/navigation/types';
+import { useThemeSettings } from '@/hooks/useThemeSettings';
 import { cloudinaryUrl } from '@/utils/cloudinary';
 import { resolveAssetUrl } from '@/utils/assetUrl';
+import { LoadingSkeleton } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
 
 const AUTO_ADVANCE_MS = 5000;
 const SCREEN_WIDTH = Dimensions.get('window').width;
+/** 16:9 hero, flush with the very top of the physical screen (docs/PROMPT-home-screen.md §1). */
+export const BANNER_HEIGHT = Math.round(SCREEN_WIDTH * 0.5625);
 
 interface Props {
   banners: Banner[];
+  loading?: boolean;
 }
 
 /**
- * Auto-advances every 5s, paused while the user is touching it; tap navigates
- * in-app for an internal link or opens the system browser for an external one
- * (`http(s)://`); renders nothing if there are no active banners
- * (01-DOCUMENTATION.md §2.2, mirrored exactly for parity with the web app).
+ * Edge-to-edge hero drawn behind the (translucent) status bar. Auto-advances
+ * every 5s with an infinite modulo loop, paused while the user is touching it;
+ * tap navigates in-app for an internal link or opens the system browser for an
+ * external one. While loading it's a full-width shimmer; with zero banners it
+ * degrades to a brand gradient block of the same height so the floating header
+ * always has a background (docs/PROMPT-home-screen.md §1).
  */
-export function BannerCarousel({ banners }: Props) {
+export function BannerCarousel({ banners, loading = false }: Props) {
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+  const { colors: brand } = useThemeSettings();
   const listRef = useRef<FlatList<Banner>>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -66,7 +75,20 @@ export function BannerCarousel({ banners }: Props) {
     [navigation],
   );
 
-  if (banners.length === 0) return null;
+  if (loading) {
+    return <LoadingSkeleton width={SCREEN_WIDTH} height={BANNER_HEIGHT} style={styles.skeleton} />;
+  }
+
+  if (banners.length === 0) {
+    return (
+      <LinearGradient
+        colors={[brand.brand600, brand.brand800]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.container}
+      />
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -83,7 +105,7 @@ export function BannerCarousel({ banners }: Props) {
         renderItem={({ item }) => (
           <Pressable onPress={() => handlePress(item)}>
             <Image
-              source={{ uri: cloudinaryUrl(resolveAssetUrl(item.imageUrl), SCREEN_WIDTH) }}
+              source={{ uri: cloudinaryUrl(resolveAssetUrl(item.imageUrl), 800) }}
               style={styles.image}
               contentFit="cover"
             />
@@ -130,23 +152,25 @@ function parseBannerLink(link: string | undefined): ParsedBannerLink | null {
 }
 
 const styles = StyleSheet.create({
-  container: { width: SCREEN_WIDTH },
-  image: { width: SCREEN_WIDTH, height: SCREEN_WIDTH * 0.5, backgroundColor: colors.gray100 },
+  container: { width: SCREEN_WIDTH, height: BANNER_HEIGHT },
+  skeleton: { borderRadius: 0 },
+  image: { width: SCREEN_WIDTH, height: BANNER_HEIGHT, backgroundColor: colors.gray100 },
   dots: {
     position: 'absolute',
-    bottom: spacing.sm,
+    bottom: spacing.md,
     left: 0,
     right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     gap: spacing.xs,
   },
   dot: {
-    width: 6,
-    height: 6,
+    width: 8,
+    height: 8,
     borderRadius: radius.full,
     backgroundColor: colors.white,
-    opacity: 0.5,
+    opacity: 0.6,
   },
-  dotActive: { opacity: 1 },
+  dotActive: { width: 24, opacity: 0.95 },
 });

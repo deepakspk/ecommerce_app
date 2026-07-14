@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, spacing, typography } from '@/theme';
+import { useThemeSettings } from '@/hooks/useThemeSettings';
+import { colors, spacing } from '@/theme';
 
 interface Badge {
   icon: keyof typeof Ionicons.glyphMap;
@@ -9,28 +10,29 @@ interface Badge {
 }
 
 const BADGES: Badge[] = [
-  { icon: 'car-outline', title: 'Nationwide Delivery', subtitle: 'Cash on Delivery available' },
-  { icon: 'card-outline', title: 'Secure Payments', subtitle: 'Khalti · eSewa · COD' },
-  { icon: 'arrow-undo-outline', title: 'Easy Returns', subtitle: 'Within the return window' },
+  { icon: 'car-outline', title: 'Nationwide Delivery', subtitle: 'Fast shipping across Nepal' },
+  { icon: 'pricetag-outline', title: 'Daily Deals & Discounts', subtitle: 'Save more with campaign offers' },
+  { icon: 'shield-checkmark-outline', title: 'Secure Payments', subtitle: 'COD · eSewa · Khalti' },
 ];
 
 /**
- * Static trust signals — ports the web app's `TrustBadges` component
- * (01-DOCUMENTATION.md's component table). Copy is deliberately limited to
- * what this app actually supports (real payment methods, real return flow)
- * rather than generic marketing claims we have no data to back (e.g. a
- * blanket discount percentage).
+ * Static trust strip — 3 compact info cards right after the category capsules
+ * (docs/PROMPT-home-screen.md §4). Hard-coded, no API call.
  */
 export function TrustBadges() {
+  const { colors: brand } = useThemeSettings();
+
   return (
     <View style={styles.container}>
       {BADGES.map((badge) => (
-        <View key={badge.title} style={styles.badge}>
-          <Ionicons name={badge.icon} size={18} color={colors.brand600} />
-          <Text style={[typography.label, styles.title]} numberOfLines={1}>
+        <View key={badge.title} style={styles.card}>
+          <View style={[styles.iconTile, { backgroundColor: brand.brand50 }]}>
+            <Ionicons name={badge.icon} size={18} color={brand.brand600} />
+          </View>
+          <Text style={styles.title} numberOfLines={2}>
             {badge.title}
           </Text>
-          <Text style={[typography.muted, styles.subtitle]} numberOfLines={2}>
+          <Text style={styles.subtitle} numberOfLines={2}>
             {badge.subtitle}
           </Text>
         </View>
@@ -42,13 +44,27 @@ export function TrustBadges() {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
+    gap: spacing.sm,
     marginHorizontal: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.gray200,
-    borderRadius: radius.md,
-    padding: spacing.md,
   },
-  badge: { flex: 1, alignItems: 'center', gap: 2, paddingHorizontal: spacing.xs },
-  title: { textAlign: 'center' },
-  subtitle: { textAlign: 'center' },
+  card: {
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.gray100,
+    borderRadius: 12,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
+  },
+  iconTile: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: { fontSize: 13, fontWeight: '600', color: colors.gray900, textAlign: 'center' },
+  subtitle: { fontSize: 11, color: colors.gray500, textAlign: 'center' },
 });

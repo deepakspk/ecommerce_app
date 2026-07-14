@@ -7,10 +7,12 @@
  */
 export * as authApi from './auth';
 export * as bannersApi from './banners';
+export * as campaignsApi from './campaigns';
 export * as categoriesApi from './categories';
 export * as featureTypesApi from './featureTypes';
 export * as settingsApi from './settings';
 export * as productsApi from './products';
+export * as promotionsApi from './promotions';
 export * as questionsApi from './questions';
 export * as reviewsApi from './reviews';
 export * as stockAlertsApi from './stockAlerts';

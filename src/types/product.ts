@@ -19,6 +19,11 @@ export interface ProductSummary {
   discountType: DiscountType;
   discountValue?: number;
   finalPrice: number;
+  /** Campaign-time price the server applied when computing `finalPrice` (docs/PROMPT-home-screen.md). */
+  campaignPrice?: number | null;
+  /** Server-computed — authoritative when present; older endpoints may omit them. */
+  hasDiscount?: boolean;
+  discountPercent?: number;
   images: ProductImage[];
   averageRating?: number;
   reviewCount: number;

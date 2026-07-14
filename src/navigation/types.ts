@@ -29,12 +29,22 @@ export type AuthStackParamList = {
  * instance rather than cross-navigating between tabs.
  */
 export type ProductListRouteParams =
-  { categorySlug?: string; featureType?: string; search?: string; title?: string } | undefined;
+  | {
+      categorySlug?: string;
+      featureType?: string;
+      search?: string;
+      title?: string;
+      /** Open with the search input already visible (Home's header search button). */
+      focusSearch?: boolean;
+    }
+  | undefined;
 
 export type HomeStackParamList = {
   Home: undefined;
   ProductList: ProductListRouteParams;
   ProductDetail: { productSlug: string };
+  Campaign: { slug: string };
+  Notifications: undefined;
 };
 
 export type CategoriesStackParamList = {
