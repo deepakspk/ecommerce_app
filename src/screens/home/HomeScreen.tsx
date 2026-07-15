@@ -259,7 +259,7 @@ export function HomeScreen() {
     const list: Section[] = [
       { type: 'hero', key: 'hero' },
       { type: 'categories', key: 'categories' },
-      { type: 'trust', key: 'trust' },
+      // { type: 'trust', key: 'trust' },
     ];
 
     const liveCampaigns = campaigns.data.filter((c) => !expiredCampaignIds.includes(c._id));
