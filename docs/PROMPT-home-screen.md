@@ -67,8 +67,11 @@ Base path: `<API_HOST>/api`
 **1. Banners** — already filtered to active, already sorted by `sortOrder`:
 
 ```json
-{ "banners": [ { "_id": "…", "imageUrl": "https://res.cloudinary.com/…", "link": "", "sortOrder": 0 } ] }
+{ "banners": [ { "_id": "…", "imageUrl": "https://res.cloudinary.com/…", "mobileImageUrl": "https://res.cloudinary.com/…", "link": "", "sortOrder": 0 } ] }
 ```
+
+`mobileImageUrl` is a mobile-optimized 800×400 (2:1) image and may be an empty string —
+on mobile always prefer `mobileImageUrl`, falling back to `imageUrl` when it is empty.
 
 `link` may be empty, an in-app path (e.g. `/products?category=shoes`), or an external
 `https://` URL — route in-app paths through navigation, open external ones in the browser.
@@ -166,8 +169,11 @@ for memory). Order:
 - The banner image starts at **y = 0 of the physical screen** — it draws **behind the status
   bar** (translucent status bar, light content). Do **not** pad it below the notch; the image
   itself owns the safe zone. Use `<StatusBar translucent backgroundColor="transparent" />`.
-- Full-width, aspect ratio ≈ **16:9 to 2:1** (pick one, e.g. `width / 0.5625`), no border
-  radius at the top (it's flush with the screen edges); content below scrolls over normally.
+- Image source: `mobileImageUrl || imageUrl` (the mobile image is 800×400), through
+  `cloudinaryUrl(src, 800)`.
+- Full-width, aspect ratio **2:1** (`height = width / 2`, matching the 800×400 mobile
+  image; `resizeMode="cover"` handles web-only fallbacks), no border radius at the top
+  (it's flush with the screen edges); content below scrolls over normally.
 - Horizontally swipeable, **auto-advances every 5 seconds**, pauses while the user is
   touching/dragging, loops infinitely.
 - **Dot indicators** centered near the bottom of the banner: active dot is a wider "pill"
@@ -386,6 +392,8 @@ Single source of truth `endDate`; compute `days/hours/mins/secs` from
 
 - [ ] Banner carousel starts at the very top of the screen, behind the status bar, and
       auto-advances every 5s with pill-style dot indicators.
+- [ ] Hero banners render `mobileImageUrl` (2:1) and fall back to `imageUrl` when it is
+      empty.
 - [ ] Logo + long pill search bar + notification bell float over the banner within the safe
       area, readable via a gradient scrim.
 - [ ] Categories render as image+name capsule chips in one horizontal line.

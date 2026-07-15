@@ -23,8 +23,8 @@ import { colors, radius, spacing } from '@/theme';
 
 const AUTO_ADVANCE_MS = 5000;
 const SCREEN_WIDTH = Dimensions.get('window').width;
-/** 16:9 hero, flush with the very top of the physical screen (docs/PROMPT-home-screen.md §1). */
-export const BANNER_HEIGHT = Math.round(SCREEN_WIDTH * 0.5625);
+/** 2:1 hero matching the 800×400 mobile banner image, flush with the very top of the physical screen (docs/PROMPT-home-screen.md §1). */
+export const BANNER_HEIGHT = Math.round(SCREEN_WIDTH * 0.5);
 
 interface Props {
   banners: Banner[];
@@ -37,7 +37,7 @@ interface Props {
  * react-native-svg with `preserveAspectRatio="slice"` — SVG's own cover mode.
  */
 function BannerImage({ banner }: { banner: Banner }) {
-  const url = resolveAssetUrl(banner.imageUrl);
+  const url = resolveAssetUrl(banner.mobileImageUrl || banner.imageUrl);
   if (/\.svg(\?|$)/i.test(url)) {
     return (
       <View style={styles.image}>

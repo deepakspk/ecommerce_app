@@ -583,7 +583,7 @@ _id, adminUserId->User, action, targetType, targetId, meta(mixed), createdAt
 
 ### Banner
 ```
-_id, imageUrl, link, sortOrder, isActive, createdAt
+_id, imageUrl, mobileImageUrl(800×400 2:1, may be ""), link, sortOrder, isActive, createdAt
 ```
 
 ### SystemSetting (admin-only)
