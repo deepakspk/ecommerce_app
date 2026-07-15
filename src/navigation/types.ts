@@ -95,9 +95,10 @@ export type AccountStackParamList = {
 
 export type MainTabParamList = {
   HomeTab: NavigatorScreenParams<HomeStackParamList>;
-  CategoriesTab: NavigatorScreenParams<CategoriesStackParamList>;
-  WishlistTab: NavigatorScreenParams<WishlistStackParamList>;
   CartTab: NavigatorScreenParams<CartStackParamList>;
+  /** Dummy center slot — rendered as the floating campaign button, never an actual screen. */
+  CampaignTab: undefined;
+  WishlistTab: NavigatorScreenParams<WishlistStackParamList>;
   AccountTab: NavigatorScreenParams<AccountStackParamList>;
 };
 
