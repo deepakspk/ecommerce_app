@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
 import { Banner } from '@/types/banner';
 import { HomeStackParamList } from '@/navigation/types';
 import { useThemeSettings } from '@/hooks/useThemeSettings';
@@ -28,6 +29,28 @@ export const BANNER_HEIGHT = Math.round(SCREEN_WIDTH * 0.5625);
 interface Props {
   banners: Banner[];
   loading?: boolean;
+}
+
+/**
+ * expo-image's SVG decoder letterboxes instead of honoring `contentFit="cover"`,
+ * so SVG banners (the backend's seed assets are 1680×360 SVGs) go through
+ * react-native-svg with `preserveAspectRatio="slice"` — SVG's own cover mode.
+ */
+function BannerImage({ banner }: { banner: Banner }) {
+  const url = resolveAssetUrl(banner.imageUrl);
+  if (/\.svg(\?|$)/i.test(url)) {
+    return (
+      <View style={styles.image}>
+        <SvgUri
+          uri={url}
+          width={SCREEN_WIDTH}
+          height={BANNER_HEIGHT}
+          preserveAspectRatio="xMidYMid slice"
+        />
+      </View>
+    );
+  }
+  return <Image source={{ uri: cloudinaryUrl(url, 800) }} style={styles.image} contentFit="cover" />;
 }
 
 /**
@@ -104,11 +127,7 @@ export function BannerCarousel({ banners, loading = false }: Props) {
         onScrollEndDrag={() => setPaused(false)}
         renderItem={({ item }) => (
           <Pressable onPress={() => handlePress(item)}>
-            <Image
-              source={{ uri: cloudinaryUrl(resolveAssetUrl(item.imageUrl), 800) }}
-              style={styles.image}
-              contentFit="cover"
-            />
+            <BannerImage banner={item} />
           </Pressable>
         )}
       />
