@@ -1,11 +1,12 @@
 import { useCallback } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AccountStackParamList, MainTabParamList } from '@/navigation/types';
+import { AccountStackParamList, MainTabParamList, RootStackParamList } from '@/navigation/types';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/Avatar';
 import { AccountMenuItem } from '@/components/AccountMenuItem';
+import { LoginForm } from '@/components/auth/LoginForm';
 import { colors, spacing, typography } from '@/theme';
 
 /**
@@ -14,9 +15,14 @@ import { colors, spacing, typography } from '@/theme';
  * Account tab (02-REACT-NATIVE-PROMPTS.md Prompt 8). Tapping the header opens
  * Edit Profile; the menu list is exactly Orders/Addresses/Wishlist/Change
  * Password/Terms/Logout per the prompt spec.
+ *
+ * Logged-out state renders the login form inline (not the AuthGuard modal)
+ * so a guest lands on a usable page instead of a blank tab; Forgot
+ * Password/OTP/Google/Signup still reuse AuthModal's existing screens.
  */
 export function AccountScreen() {
   const navigation = useNavigation<NavigationProp<AccountStackParamList>>();
+  const rootNavigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { user, logout } = useAuth();
 
   const handleLogout = useCallback(() => {
@@ -39,7 +45,20 @@ export function AccountScreen() {
     navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('WishlistTab', { screen: 'WishlistRoot' });
   }, [navigation]);
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerStyle={styles.authContainer} keyboardShouldPersistTaps="handled">
+          <LoginForm
+            onForgotPassword={() => rootNavigation.navigate('AuthModal', { screen: 'ForgotPassword' })}
+            onOtpLogin={() => rootNavigation.navigate('AuthModal', { screen: 'OtpLogin' })}
+            onGoogleAuth={() => rootNavigation.navigate('AuthModal', { screen: 'GoogleAuthWebView' })}
+            onSignup={() => rootNavigation.navigate('AuthModal', { screen: 'Signup' })}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
@@ -71,6 +90,7 @@ export function AccountScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
   container: { paddingBottom: spacing.xxl },
+  authContainer: { flexGrow: 1, justifyContent: 'center', padding: spacing.xl },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -10,28 +10,22 @@ import { OrdersListScreen } from '@/screens/orders/OrdersListScreen';
 import { OrderDetailScreen } from '@/screens/orders/OrderDetailScreen';
 import { ReturnRequestScreen } from '@/screens/orders/ReturnRequestScreen';
 import { PaymentWebViewScreen } from '@/screens/checkout/PaymentWebViewScreen';
-import { AuthGuard } from '@/components/AuthGuard';
 
 const Stack = createNativeStackNavigator<AccountStackParamList>();
 
 /**
- * Only the `Account` root is wrapped in AuthGuard — a guest tapping the
- * Account tab is prompted to log in rather than seeing a broken/empty
- * profile, and every route below it is only reachable from there, so it's
- * already gated by the time it's reached. Address Book, Orders, and payment
- * retry reuse Prompt 6/7's screens rather than duplicating them
- * (02-REACT-NATIVE-PROMPTS.md Prompt 8).
+ * The `Account` root has no AuthGuard: it renders its own logged-in
+ * (profile menu) and logged-out (inline LoginForm) states, so a guest
+ * tapping the Account tab lands on a usable login page rather than a
+ * modal over a blank screen. Every route below it is only reachable from
+ * the logged-in menu, so it's already gated by the time it's reached.
+ * Address Book, Orders, and payment retry reuse Prompt 6/7's screens rather
+ * than duplicating them (02-REACT-NATIVE-PROMPTS.md Prompt 8).
  */
 export function AccountStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Account">
-        {() => (
-          <AuthGuard>
-            <AccountScreen />
-          </AuthGuard>
-        )}
-      </Stack.Screen>
+      <Stack.Screen name="Account" component={AccountScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="AddressList" component={AddressListScreen} />
