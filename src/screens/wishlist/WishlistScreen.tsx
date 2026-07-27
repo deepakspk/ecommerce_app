@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
-import { WishlistStackParamList } from '@/navigation/types';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MainTabParamList, WishlistStackParamList } from '@/navigation/types';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useCart } from '@/hooks/useCart';
 import { getProductBySlug } from '@/api/products';
@@ -24,6 +26,7 @@ const THUMB_SIZE = 72;
  */
 export function WishlistScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<WishlistStackParamList>>();
+  const insets = useSafeAreaInsets();
   const { items, loading, removeItem, clearWishlist } = useWishlist();
   const { addItem } = useCart();
   const [movingSlug, setMovingSlug] = useState<string | null>(null);
@@ -71,29 +74,51 @@ export function WishlistScreen() {
     [addItem, removeItem],
   );
 
+  const handleBack = useCallback(() => {
+    navigation
+      .getParent<NavigationProp<MainTabParamList>>()
+      ?.navigate('HomeTab', { screen: 'Home' });
+  }, [navigation]);
+
   if (!loading && items.length === 0) {
     return (
-      <View style={styles.flex}>
-        <EmptyState icon="heart-outline" title="Your wishlist is empty" message="Save products you love for later." />
+      <View style={[styles.flex, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <Pressable onPress={handleBack} hitSlop={8}>
+            <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+          </Pressable>
+          <Text style={typography.h1}>Wishlist</Text>
+        </View>
+        <EmptyState
+          icon="heart-outline"
+          title="Your wishlist is empty"
+          message="Save products you love for later."
+        />
       </View>
     );
   }
 
   return (
-    <View style={styles.flex}>
+    <View style={[styles.flex, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <Pressable onPress={handleBack} hitSlop={8}>
+          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+        </Pressable>
+        <Text style={typography.h1}>Wishlist</Text>
+      </View>
+
       <FlatList
         data={items}
         keyExtractor={(item) => item.productId._id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          <View style={styles.header}>
-            <Text style={typography.h1}>Wishlist</Text>
-            {items.length > 0 ? (
+          items.length > 0 ? (
+            <View style={styles.listActions}>
               <Pressable onPress={clearWishlist}>
                 <Text style={styles.clearText}>Clear all</Text>
               </Pressable>
-            ) : null}
-          </View>
+            </View>
+          ) : null
         }
         renderItem={({ item }) => {
           const product = item.productId;
@@ -152,10 +177,12 @@ const styles = StyleSheet.create({
   list: { padding: spacing.lg, paddingBottom: spacing.xxl },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
+  listActions: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: spacing.md },
   clearText: { color: colors.danger600, fontWeight: '600', fontSize: 13 },
   row: {
     flexDirection: 'row',
@@ -164,10 +191,20 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.gray100,
   },
-  image: { width: THUMB_SIZE, height: THUMB_SIZE, borderRadius: radius.md, backgroundColor: colors.gray100 },
+  image: {
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    borderRadius: radius.md,
+    backgroundColor: colors.gray100,
+  },
   imagePlaceholder: { backgroundColor: colors.gray100 },
   details: { flex: 1, gap: spacing.xs },
-  actionsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xs },
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginTop: spacing.xs,
+  },
   removeText: { color: colors.danger600, fontSize: 12, fontWeight: '500' },
   errorBannerWrap: { marginHorizontal: spacing.lg, marginBottom: spacing.md },
 });

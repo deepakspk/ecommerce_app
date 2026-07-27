@@ -13,6 +13,8 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccountStackParamList } from '@/navigation/types';
 import { useAuth } from '@/hooks/useAuth';
 import { updateProfile } from '@/api/auth';
@@ -30,6 +32,7 @@ import { colors, spacing, typography } from '@/theme';
  */
 export function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AccountStackParamList>>();
+  const insets = useSafeAreaInsets();
   const { user, refreshMe } = useAuth();
 
   const [name, setName] = useState(user?.name ?? '');
@@ -79,7 +82,8 @@ export function EditProfileScreen() {
 
     const nextFieldErrors: Record<string, string> = {};
     if (!isValidEmail(email)) nextFieldErrors.email = 'Enter a valid email address';
-    if (phone && !isValidNepaliPhone(phone)) nextFieldErrors.phone = 'Enter a valid Nepali phone number';
+    if (phone && !isValidNepaliPhone(phone))
+      nextFieldErrors.phone = 'Enter a valid Nepali phone number';
     if (Object.keys(nextFieldErrors).length > 0) {
       setFieldErrors(nextFieldErrors);
       return;
@@ -99,10 +103,18 @@ export function EditProfileScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={[styles.flex, { paddingTop: insets.top }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+        </Pressable>
         <Text style={typography.h1}>Edit Profile</Text>
+      </View>
 
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <FormError message={formError} />
 
         <Pressable style={styles.avatarWrap} onPress={handlePickAvatar} disabled={avatarUploading}>
@@ -140,7 +152,12 @@ export function EditProfileScreen() {
           placeholder="98XXXXXXXX"
         />
 
-        <Button title="Save Changes" onPress={handleSave} loading={submitting} style={styles.saveBtn} />
+        <Button
+          title="Save Changes"
+          onPress={handleSave}
+          loading={submitting}
+          style={styles.saveBtn}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -148,6 +165,13 @@ export function EditProfileScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
   container: { padding: spacing.xl, gap: spacing.md, backgroundColor: colors.white },
   avatarWrap: { alignSelf: 'center', marginVertical: spacing.md },
   avatarOverlay: {

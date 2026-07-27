@@ -6,8 +6,6 @@ import { Button, Input, Modal } from '@/components/ui';
 import { spacing, typography } from '@/theme';
 
 export interface FilterValue {
-  size?: string;
-  color?: string;
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
@@ -25,8 +23,6 @@ const RATING_OPTIONS = [4, 3, 2, 1];
 
 /** Full-screen page-sheet built on the shared `Modal` chrome — no heavy bottom-sheet library needed at this scope. */
 export function FilterSheet({ visible, onClose, availableFilters, value, onApply }: Props) {
-  const [size, setSize] = useState(value.size);
-  const [color, setColor] = useState(value.color);
   const [minPrice, setMinPrice] = useState(value.minPrice?.toString() ?? '');
   const [maxPrice, setMaxPrice] = useState(value.maxPrice?.toString() ?? '');
   const [minRating, setMinRating] = useState(value.minRating);
@@ -38,8 +34,6 @@ export function FilterSheet({ visible, onClose, availableFilters, value, onApply
   if (visible !== wasVisible) {
     setWasVisible(visible);
     if (visible) {
-      setSize(value.size);
-      setColor(value.color);
       setMinPrice(value.minPrice?.toString() ?? '');
       setMaxPrice(value.maxPrice?.toString() ?? '');
       setMinRating(value.minRating);
@@ -48,8 +42,6 @@ export function FilterSheet({ visible, onClose, availableFilters, value, onApply
 
   const handleApply = () => {
     onApply({
-      size,
-      color,
       minPrice: minPrice ? Number(minPrice) : undefined,
       maxPrice: maxPrice ? Number(maxPrice) : undefined,
       minRating,
@@ -58,8 +50,6 @@ export function FilterSheet({ visible, onClose, availableFilters, value, onApply
   };
 
   const handleReset = () => {
-    setSize(undefined);
-    setColor(undefined);
     setMinPrice('');
     setMaxPrice('');
     setMinRating(undefined);
@@ -90,38 +80,6 @@ export function FilterSheet({ visible, onClose, availableFilters, value, onApply
             </View>
           </View>
         </View>
-
-        {availableFilters && availableFilters.sizes.length > 0 ? (
-          <View style={styles.section}>
-            <Text style={typography.label}>Size</Text>
-            <View style={styles.pills}>
-              {availableFilters.sizes.map((s) => (
-                <FilterPill
-                  key={s}
-                  label={s}
-                  selected={size === s}
-                  onPress={() => setSize(size === s ? undefined : s)}
-                />
-              ))}
-            </View>
-          </View>
-        ) : null}
-
-        {availableFilters && availableFilters.colors.length > 0 ? (
-          <View style={styles.section}>
-            <Text style={typography.label}>Color</Text>
-            <View style={styles.pills}>
-              {availableFilters.colors.map((c) => (
-                <FilterPill
-                  key={c}
-                  label={c}
-                  selected={color === c}
-                  onPress={() => setColor(color === c ? undefined : c)}
-                />
-              ))}
-            </View>
-          </View>
-        ) : null}
 
         <View style={styles.section}>
           <Text style={typography.label}>Minimum rating</Text>

@@ -1,6 +1,17 @@
 import { useCallback, useMemo, useState } from 'react';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CartStackParamList } from '@/navigation/types';
 import { createAddress, updateAddress } from '@/api/addresses';
 import { getBranches, LogisticsBranch } from '@/api/logistics';
@@ -26,6 +37,7 @@ function branchDisplayName(branch: LogisticsBranch): string {
 export function AddressFormScreen() {
   const navigation = useNavigation<NavigationProp<CartStackParamList>>();
   const route = useRoute<RouteProp<CartStackParamList, 'AddressForm'>>();
+  const insets = useSafeAreaInsets();
   const existing = route.params?.address;
   const isEdit = !!existing;
 
@@ -136,13 +148,26 @@ export function AddressFormScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={[styles.flex, { paddingTop: insets.top }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+        </Pressable>
         <Text style={typography.h1}>{isEdit ? 'Edit Address' : 'Add Address'}</Text>
+      </View>
 
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <FormError message={formError} />
 
-        <Input label="Label (optional)" value={label} onChangeText={setLabel} placeholder="Home, Office, ..." />
+        <Input
+          label="Label (optional)"
+          value={label}
+          onChangeText={setLabel}
+          placeholder="Home, Office, ..."
+        />
 
         <Input
           label="Recipient name"
@@ -151,7 +176,13 @@ export function AddressFormScreen() {
           error={fieldErrors.recipientName}
         />
 
-        <Input label="Phone" value={phone} onChangeText={setPhone} error={fieldErrors.phone} keyboardType="phone-pad" />
+        <Input
+          label="Phone"
+          value={phone}
+          onChangeText={setPhone}
+          error={fieldErrors.phone}
+          keyboardType="phone-pad"
+        />
 
         <Select
           label="Country"
@@ -224,7 +255,9 @@ export function AddressFormScreen() {
                   value={branchName}
                   onChangeText={setBranchName}
                   error={fieldErrors.branchName}
-                  placeholder={branchesLoaded ? 'No branches found for this district' : 'Loading branches…'}
+                  placeholder={
+                    branchesLoaded ? 'No branches found for this district' : 'Loading branches…'
+                  }
                 />
               )
             ) : null}
@@ -239,14 +272,24 @@ export function AddressFormScreen() {
 
         <Input label="Landmark" value={landmark} onChangeText={setLandmark} />
 
-        <Input label="Postal code (optional)" value={postalCode} onChangeText={setPostalCode} keyboardType="numeric" />
+        <Input
+          label="Postal code (optional)"
+          value={postalCode}
+          onChangeText={setPostalCode}
+          keyboardType="numeric"
+        />
 
         <View style={styles.switchRow}>
           <Text style={typography.body}>Set as default address</Text>
           <Switch value={isDefault} onValueChange={setIsDefault} />
         </View>
 
-        <Button title="Save Address" onPress={handleSubmit} loading={submitting} style={styles.submitBtn} />
+        <Button
+          title="Save Address"
+          onPress={handleSubmit}
+          loading={submitting}
+          style={styles.submitBtn}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -254,6 +297,13 @@ export function AddressFormScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
   container: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   submitBtn: { marginTop: spacing.md },

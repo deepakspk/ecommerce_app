@@ -23,8 +23,8 @@ import { colors, radius, spacing } from '@/theme';
 
 const AUTO_ADVANCE_MS = 5000;
 const SCREEN_WIDTH = Dimensions.get('window').width;
-/** 2:1 hero matching the 800×400 mobile banner image, flush with the very top of the physical screen (docs/PROMPT-home-screen.md §1). */
-export const BANNER_HEIGHT = Math.round(SCREEN_WIDTH * 0.5);
+/** 2:1 hero matching the 800×400 mobile banner image, flush with the very top of the physical screen (docs/PROMPT-home-screen.md §1) — scaled up 20% over the base ratio. */
+export const BANNER_HEIGHT = Math.round(SCREEN_WIDTH * 0.5 * 1.2);
 
 interface Props {
   banners: Banner[];
@@ -50,7 +50,9 @@ function BannerImage({ banner }: { banner: Banner }) {
       </View>
     );
   }
-  return <Image source={{ uri: cloudinaryUrl(url, 800) }} style={styles.image} contentFit="cover" />;
+  return (
+    <Image source={{ uri: cloudinaryUrl(url, 800) }} style={styles.image} contentFit="cover" />
+  );
 }
 
 /**

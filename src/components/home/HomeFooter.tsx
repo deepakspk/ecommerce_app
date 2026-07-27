@@ -1,6 +1,7 @@
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { SvgXml } from 'react-native-svg';
 import { useCompanySettings } from '@/hooks/useCompanySettings';
 import { useThemeSettings } from '@/hooks/useThemeSettings';
 import { cloudinaryUrl } from '@/utils/cloudinary';
@@ -24,16 +25,22 @@ function socialUrl(key: string, value: string): string {
   return value;
 }
 
-/**
- * "We Accept" chips are styled text rather than bundled logo images — the
- * repo has no payment-logo assets to bundle yet; swap in real logos when the
- * design assets land.
- */
-const PAYMENT_CHIPS = [
-  { label: 'Cash on Delivery', color: colors.gray900 },
-  { label: 'eSewa', color: '#60bb46' },
-  { label: 'Khalti', color: '#5c2d91' },
-];
+/** Same "Cash on Delivery" glyph the web app's footer uses (client/public/payments/cod.svg) — Material Symbols "payments" (Apache-2.0). */
+const COD_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 64" role="img" aria-label="Cash on Delivery">
+  <g transform="translate(4,56) scale(0.05)" fill="#C62828">
+    <path d="M560-440q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM280-320q-33 0-56.5-23.5T200-400v-320q0-33 23.5-56.5T280-800h560q33 0 56.5 23.5T920-720v320q0 33-23.5 56.5T840-320H280Zm80-80h400q0-33 23.5-56.5T840-480v-160q-33 0-56.5-23.5T760-720H360q0 33-23.5 56.5T280-640v160q33 0 56.5 23.5T360-400Zm440 240H120q-33 0-56.5-23.5T40-240v-440h80v440h680v80ZM280-400v-320 320Z"/>
+  </g>
+  <text x="58" y="30" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="26" letter-spacing="2" fill="#C62828">COD</text>
+  <rect x="58" y="38" width="124" height="16" rx="3" fill="#C62828"/>
+  <text x="120" y="49.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="8" letter-spacing="1" fill="#ffffff" textLength="112" lengthAdjust="spacingAndGlyphs">CASH ON DELIVERY</text>
+</svg>`;
+
+/** Real payment-provider logos, matching the web app's footer (client/public/payments/) — each sized to its own aspect ratio so differently proportioned logos look balanced. */
+const PAYMENT_LOGOS = [
+  { key: 'cod', label: 'Cash on Delivery', width: 107, height: 36 },
+  { key: 'esewa', label: 'eSewa', width: 85, height: 24 },
+  { key: 'khalti', label: 'Khalti', width: 77, height: 32 },
+] as const;
 
 interface Props {
   onPressTerms: () => void;
@@ -49,8 +56,22 @@ export function HomeFooter({ onPressTerms }: Props) {
   ) as [string, string][];
 
   const contactRows = [
-    company.phone ? { icon: 'call' as const, label: 'Call us', value: company.phone, url: `tel:${company.phone}` } : null,
-    company.email ? { icon: 'mail' as const, label: 'Email us', value: company.email, url: `mailto:${company.email}` } : null,
+    company.phone
+      ? {
+          icon: 'call' as const,
+          label: 'Call us',
+          value: company.phone,
+          url: `tel:${company.phone}`,
+        }
+      : null,
+    company.email
+      ? {
+          icon: 'mail' as const,
+          label: 'Email us',
+          value: company.email,
+          url: `mailto:${company.email}`,
+        }
+      : null,
   ].filter((row): row is NonNullable<typeof row> => row !== null);
 
   return (
@@ -71,7 +92,11 @@ export function HomeFooter({ onPressTerms }: Props) {
       ) : null}
 
       {contactRows.map((row) => (
-        <Pressable key={row.label} style={styles.contactRow} onPress={() => Linking.openURL(row.url).catch(() => {})}>
+        <Pressable
+          key={row.label}
+          style={styles.contactRow}
+          onPress={() => Linking.openURL(row.url).catch(() => {})}
+        >
           <View style={[styles.contactIcon, { backgroundColor: brand.brand600 }]}>
             <Ionicons name={row.icon} size={14} color={colors.white} />
           </View>
@@ -83,25 +108,41 @@ export function HomeFooter({ onPressTerms }: Props) {
       ))}
 
       {socialEntries.length > 0 ? (
-        <View style={styles.socialRow}>
-          {socialEntries.map(([key, value]) => (
-            <Pressable
-              key={key}
-              style={[styles.socialBtn, { backgroundColor: brand.brand600 }]}
-              onPress={() => Linking.openURL(socialUrl(key, value)).catch(() => {})}
-            >
-              <Ionicons name={SOCIAL_ICONS[key]} size={16} color={colors.white} />
-            </Pressable>
-          ))}
+        <View style={styles.socialBlock}>
+          <Text style={styles.socialTitle}>Find us on social media</Text>
+          <View style={styles.socialRow}>
+            {socialEntries.map(([key, value]) => (
+              <Pressable
+                key={key}
+                style={[styles.socialBtn, { backgroundColor: brand.brand600 }]}
+                onPress={() => Linking.openURL(socialUrl(key, value)).catch(() => {})}
+              >
+                <Ionicons name={SOCIAL_ICONS[key]} size={16} color={colors.white} />
+              </Pressable>
+            ))}
+          </View>
         </View>
       ) : null}
 
       <View style={styles.acceptBlock}>
         <Text style={styles.acceptTitle}>We Accept</Text>
         <View style={styles.acceptRow}>
-          {PAYMENT_CHIPS.map((chip) => (
-            <View key={chip.label} style={styles.acceptChip}>
-              <Text style={[styles.acceptChipText, { color: chip.color }]}>{chip.label}</Text>
+          {PAYMENT_LOGOS.map((logo) => (
+            <View key={logo.key} style={styles.acceptChip}>
+              {logo.key === 'cod' ? (
+                <SvgXml xml={COD_LOGO_SVG} width={logo.width} height={logo.height} />
+              ) : (
+                <Image
+                  source={
+                    logo.key === 'esewa'
+                      ? require('../../../assets/payments/esewa.png')
+                      : require('../../../assets/payments/khalti.png')
+                  }
+                  style={{ width: logo.width, height: logo.height }}
+                  contentFit="contain"
+                  accessibilityLabel={logo.label}
+                />
+              )}
             </View>
           ))}
         </View>
@@ -123,7 +164,7 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: spacing.md,
   },
-  logo: { width: 120, height: 40, alignSelf: 'flex-start' },
+  logo: { width: 240, height: 80, alignSelf: 'flex-start' },
   companyName: { fontSize: 18, fontWeight: '800', color: colors.gray900 },
   description: { fontSize: 12, color: colors.gray500, lineHeight: 18 },
   contactRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
@@ -136,6 +177,8 @@ const styles = StyleSheet.create({
   },
   contactLabel: { fontSize: 11, color: colors.gray500 },
   contactValue: { fontSize: 13, fontWeight: '600', color: colors.gray900 },
+  socialBlock: { gap: spacing.sm },
+  socialTitle: { fontSize: 13, fontWeight: '700', color: colors.gray900 },
   socialRow: { flexDirection: 'row', gap: spacing.sm },
   socialBtn: {
     width: 34,
@@ -148,14 +191,15 @@ const styles = StyleSheet.create({
   acceptTitle: { fontSize: 13, fontWeight: '700', color: colors.gray900 },
   acceptRow: { flexDirection: 'row', gap: spacing.sm },
   acceptChip: {
+    height: 48,
     backgroundColor: colors.white,
     borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.gray200,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  acceptChipText: { fontSize: 12, fontWeight: '700' },
   copyright: { fontSize: 11, color: colors.gray500, textAlign: 'center', marginTop: spacing.sm },
   termsLink: { fontSize: 12, fontWeight: '600', textAlign: 'center' },
 });

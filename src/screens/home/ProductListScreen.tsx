@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeStackParamList } from '@/navigation/types';
 import { useCategories } from '@/hooks/useCategories';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -92,6 +93,7 @@ async function fetchFirstPage(
 export function ProductListScreen() {
   const route = useRoute<RouteProp<HomeStackParamList, 'ProductList'>>();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const insets = useSafeAreaInsets();
   const { categories } = useCategories();
 
   const initialParams = route.params;
@@ -104,8 +106,6 @@ export function ProductListScreen() {
 
   const [categorySlug, setCategorySlug] = useState(initialParams?.categorySlug);
   const [featureType] = useState(initialParams?.featureType);
-  const [size, setSize] = useState<string | undefined>();
-  const [color, setColor] = useState<string | undefined>();
   const [minPrice, setMinPrice] = useState<number | undefined>();
   const [maxPrice, setMaxPrice] = useState<number | undefined>();
   const [minRating, setMinRating] = useState<number | undefined>();
@@ -139,14 +139,12 @@ export function ProductListScreen() {
       category: categorySlug,
       featureType,
       search: debouncedSearch.trim() || undefined,
-      size,
-      color,
       minPrice,
       maxPrice,
       minRating,
       sort,
     }),
-    [categorySlug, featureType, debouncedSearch, size, color, minPrice, maxPrice, minRating, sort],
+    [categorySlug, featureType, debouncedSearch, minPrice, maxPrice, minRating, sort],
   );
 
   useEffect(() => {
@@ -188,10 +186,8 @@ export function ProductListScreen() {
     [navigation],
   );
 
-  const filterValue: FilterValue = { size, color, minPrice, maxPrice, minRating };
-  const activeFilterCount = [size, color, minPrice, maxPrice, minRating].filter(
-    (v) => v !== undefined,
-  ).length;
+  const filterValue: FilterValue = { minPrice, maxPrice, minRating };
+  const activeFilterCount = [minPrice, maxPrice, minRating].filter((v) => v !== undefined).length;
 
   const listHeader = (
     <View style={styles.headerContainer}>
@@ -268,11 +264,17 @@ export function ProductListScreen() {
           <Text style={styles.actionText}>Sort</Text>
         </Pressable>
       </View>
+
+      {state === 'loading' && products.length > 0 ? (
+        <View style={styles.refetchRow}>
+          <ActivityIndicator color={colors.brand600} size="small" />
+        </View>
+      ) : null}
     </View>
   );
 
   return (
-    <View style={styles.flex}>
+    <View style={[styles.flex, { paddingTop: insets.top }]}>
       <FlatList
         data={products}
         keyExtractor={(item) => item._id}
@@ -326,8 +328,6 @@ export function ProductListScreen() {
         availableFilters={availableFilters}
         value={filterValue}
         onApply={(next) => {
-          setSize(next.size);
-          setColor(next.color);
           setMinPrice(next.minPrice);
           setMaxPrice(next.maxPrice);
           setMinRating(next.minRating);
@@ -377,6 +377,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   actionText: { fontSize: 13, color: colors.gray700, fontWeight: '500' },
+  refetchRow: { alignItems: 'center', paddingTop: spacing.md },
   gridRow: { gap: spacing.md, paddingHorizontal: spacing.lg },
   gridContent: { paddingBottom: spacing.xxl, gap: spacing.md },
   loadingIndicator: { marginVertical: spacing.xxl },

@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { WebView, WebViewNavigation } from 'react-native-webview';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/hooks/useAuth';
 import { getErrorMessage } from '@/utils/errorHelpers';
 import { colors, spacing, typography } from '@/theme';
@@ -20,6 +21,7 @@ const CALLBACK_MARKER = '/oauth-callback';
  */
 export function GoogleAuthWebViewScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { loginWithToken } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const handledRef = useRef(false);
@@ -50,14 +52,14 @@ export function GoogleAuthWebViewScreen() {
 
   if (error) {
     return (
-      <View style={styles.center}>
+      <View style={[styles.center, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <Text style={styles.errorText}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.flex}>
+    <View style={[styles.flex, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <WebView
         source={{ uri: GOOGLE_AUTH_URL }}
         onShouldStartLoadWithRequest={handleShouldStart}

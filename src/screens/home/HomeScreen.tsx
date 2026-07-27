@@ -123,7 +123,10 @@ export function HomeScreen() {
   const [expiredCampaignIds, setExpiredCampaignIds] = useState<string[]>([]);
   const [rails, setRails] = useState<FeatureRail[]>([]);
   const [railsState, setRailsState] = useState<FetchState>('loading');
-  const [promotions, setPromotions] = useState<SectionData<Promotion>>({ data: [], state: 'loading' });
+  const [promotions, setPromotions] = useState<SectionData<Promotion>>({
+    data: [],
+    state: 'loading',
+  });
   const [forYou, setForYou] = useState<SectionData<ProductSummary>>({ data: [], state: 'loading' });
   const [refreshing, setRefreshing] = useState(false);
   const [pinned, setPinned] = useState(false);
@@ -215,7 +218,16 @@ export function HomeScreen() {
       refreshTheme(),
     ]);
     setRefreshing(false);
-  }, [loadBanners, loadCampaigns, loadRails, loadPromotions, loadForYou, refreshCategories, refreshCompany, refreshTheme]);
+  }, [
+    loadBanners,
+    loadCampaigns,
+    loadRails,
+    loadPromotions,
+    loadForYou,
+    refreshCategories,
+    refreshCompany,
+    refreshTheme,
+  ]);
 
   const handleCampaignExpire = useCallback((campaignId: string) => {
     setExpiredCampaignIds((prev) => (prev.includes(campaignId) ? prev : [...prev, campaignId]));
@@ -234,7 +246,8 @@ export function HomeScreen() {
     [navigation],
   );
   const handlePressCategory = useCallback(
-    (slug: string, title: string) => navigation.navigate('ProductList', { categorySlug: slug, title }),
+    (slug: string, title: string) =>
+      navigation.navigate('ProductList', { categorySlug: slug, title }),
     [navigation],
   );
   const handleCampaignViewAll = useCallback(
@@ -243,7 +256,10 @@ export function HomeScreen() {
   );
   const handleFeatureViewAll = useCallback(
     (featureType: FeatureType) =>
-      navigation.navigate('ProductList', { featureType: featureType.slug, title: featureType.name }),
+      navigation.navigate('ProductList', {
+        featureType: featureType.slug,
+        title: featureType.name,
+      }),
     [navigation],
   );
   const handleViewAllProducts = useCallback(
@@ -275,7 +291,11 @@ export function HomeScreen() {
       list.push({ type: 'sectionSkeleton', key: 'rails-skeleton' });
     }
 
-    list.push({ type: 'forYou', key: 'forYou' }, { type: 'recent', key: 'recent' }, { type: 'footer', key: 'footer' });
+    list.push(
+      { type: 'forYou', key: 'forYou' },
+      { type: 'recent', key: 'recent' },
+      { type: 'footer', key: 'footer' },
+    );
     return list;
   }, [campaigns, expiredCampaignIds, rails, railsState, promotions]);
 
@@ -450,7 +470,6 @@ export function HomeScreen() {
 
       <HomeHeader
         scrollY={scrollY}
-        pinned={pinned}
         onPressSearch={handlePressSearch}
         onPressNotifications={handlePressNotifications}
       />

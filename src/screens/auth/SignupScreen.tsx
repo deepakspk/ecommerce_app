@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+} from 'react-native';
 import { AuthStackParamList, RootStackParamList } from '@/navigation/types';
 import { useAuth } from '@/hooks/useAuth';
 import { isValidEmail, isValidNepaliPhone, isValidPassword } from '@/utils/validators';
@@ -20,12 +27,16 @@ export function SignupScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    return () => setPassword('');
+    return () => {
+      setPassword('');
+      setConfirmPassword('');
+    };
   }, []);
 
   const handleSubmit = async () => {
@@ -38,6 +49,7 @@ export function SignupScreen({ navigation }: Props) {
     if (!isValidEmail(email)) nextFieldErrors.email = 'Enter a valid email address';
     if (!isValidPassword(password))
       nextFieldErrors.password = 'Password must be at least 8 characters';
+    if (confirmPassword !== password) nextFieldErrors.confirmPassword = 'Passwords do not match';
     if (phone.trim() && !isValidNepaliPhone(phone))
       nextFieldErrors.phone = 'Enter a valid Nepali phone number';
     if (Object.keys(nextFieldErrors).length > 0) {
@@ -78,7 +90,13 @@ export function SignupScreen({ navigation }: Props) {
 
         <FormError message={formError} />
 
-        <Input label="Name" value={name} onChangeText={setName} error={fieldErrors.name} placeholder="Your full name" />
+        <Input
+          label="Name"
+          value={name}
+          onChangeText={setName}
+          error={fieldErrors.name}
+          placeholder="Your full name"
+        />
 
         <Input
           label="Email"
@@ -108,6 +126,16 @@ export function SignupScreen({ navigation }: Props) {
           secureTextEntry
           autoComplete="password-new"
           placeholder="At least 8 characters"
+        />
+
+        <Input
+          label="Confirm Password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          error={fieldErrors.confirmPassword}
+          secureTextEntry
+          autoComplete="password-new"
+          placeholder="Re-enter your password"
         />
 
         <Button title="Create Account" onPress={handleSubmit} loading={submitting} />

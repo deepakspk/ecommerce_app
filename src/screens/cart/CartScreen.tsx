@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CartStackParamList, MainTabParamList } from '@/navigation/types';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,6 +22,7 @@ import { colors, spacing, typography } from '@/theme';
  */
 export function CartScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<CartStackParamList>>();
+  const insets = useSafeAreaInsets();
   const { items, loading, subtotal, updateQuantity, removeItem, clearCart } = useCart();
   const { user } = useAuth();
   const [mutationError, setMutationError] = useState<string | null>(null);
@@ -79,17 +82,27 @@ export function CartScreen() {
     navigation.navigate('Checkout');
   }, [navigation]);
 
+  const handleBack = useCallback(() => {
+    navigation
+      .getParent<NavigationProp<MainTabParamList>>()
+      ?.navigate('HomeTab', { screen: 'Home' });
+  }, [navigation]);
+
   if (!loading && items.length === 0) {
     return (
-      <View style={styles.flex}>
+      <View style={[styles.flex, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <Pressable onPress={handleBack} hitSlop={8}>
+            <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+          </Pressable>
+          <Text style={typography.h1}>Cart</Text>
+        </View>
         <EmptyState
           icon="cart-outline"
           title="Your cart is empty"
           message="Browse the catalog to find something you'll love."
           actionLabel="Browse Products"
-          onAction={() =>
-            navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('HomeTab', { screen: 'Home' })
-          }
+          onAction={handleBack}
         />
         <Pressable style={styles.ordersLink} onPress={() => navigation.navigate('OrdersList')}>
           <Text style={styles.ordersLinkText}>View My Orders</Text>
@@ -99,24 +112,28 @@ export function CartScreen() {
   }
 
   return (
-    <View style={styles.flex}>
+    <View style={[styles.flex, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <Pressable onPress={handleBack} hitSlop={8}>
+          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+        </Pressable>
+        <Text style={typography.h1}>Cart</Text>
+      </View>
+
       <FlatList
         data={items}
         keyExtractor={(item: CartItem) => item.variantId._id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          <View style={styles.header}>
-            <Text style={typography.h1}>Cart</Text>
-            <View style={styles.headerActions}>
-              <Pressable onPress={() => navigation.navigate('OrdersList')}>
-                <Text style={styles.ordersLinkText}>My Orders</Text>
+          <View style={styles.listActions}>
+            <Pressable onPress={() => navigation.navigate('OrdersList')}>
+              <Text style={styles.ordersLinkText}>My Orders</Text>
+            </Pressable>
+            {items.length > 0 ? (
+              <Pressable onPress={handleClear}>
+                <Text style={styles.clearText}>Clear all</Text>
               </Pressable>
-              {items.length > 0 ? (
-                <Pressable onPress={handleClear}>
-                  <Text style={styles.clearText}>Clear all</Text>
-                </Pressable>
-              ) : null}
-            </View>
+            ) : null}
           </View>
         }
         renderItem={({ item }) => (
@@ -139,7 +156,10 @@ export function CartScreen() {
           <Text style={typography.body}>Subtotal</Text>
           <Text style={typography.priceDetail}>Rs. {subtotal.toLocaleString()}</Text>
         </View>
-        <Button title={user ? 'Proceed to Checkout' : 'Log in to Checkout'} onPress={handleCheckout} />
+        <Button
+          title={user ? 'Proceed to Checkout' : 'Log in to Checkout'}
+          onPress={handleCheckout}
+        />
       </View>
     </View>
   );
@@ -150,17 +170,27 @@ const styles = StyleSheet.create({
   list: { padding: spacing.lg, paddingBottom: spacing.xxl },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  listActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: spacing.lg,
     marginBottom: spacing.md,
   },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   clearText: { color: colors.danger600, fontWeight: '600', fontSize: 13 },
   ordersLink: { alignItems: 'center', paddingVertical: spacing.md },
   ordersLinkText: { color: colors.brand600, fontWeight: '600', fontSize: 13 },
   errorBannerWrap: { marginHorizontal: spacing.lg, marginBottom: spacing.sm },
   footer: {
     padding: spacing.lg,
+    // Extra bottom clearance so the button doesn't sit under the floating
+    // campaign tab button, which overhangs above the tab bar's top edge.
+    paddingBottom: spacing.lg + spacing.xxl,
     gap: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.gray100,

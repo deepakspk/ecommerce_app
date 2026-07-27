@@ -1,7 +1,22 @@
 import { useCallback, useState } from 'react';
-import { NavigationProp, RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  NavigationProp,
+  RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CartStackParamList } from '@/navigation/types';
 import { getOrder, cancelOrder, getReturnRequests } from '@/api/orders';
 import { initiateKhalti, initiateEsewa } from '@/api/payments';
@@ -19,7 +34,11 @@ type FetchState = 'loading' | 'ready' | 'error';
 const CANCELLABLE_STATUSES = ['PENDING', 'CONFIRMED'];
 const RETRYABLE_PAYMENT_STATUSES = ['PENDING', 'FAILED'];
 
-async function fetchOrder(orderId: string, setOrder: (order: Order) => void, setState: (state: FetchState) => void) {
+async function fetchOrder(
+  orderId: string,
+  setOrder: (order: Order) => void,
+  setState: (state: FetchState) => void,
+) {
   setState('loading');
   try {
     const order = await getOrder(orderId);
@@ -30,7 +49,10 @@ async function fetchOrder(orderId: string, setOrder: (order: Order) => void, set
   }
 }
 
-async function fetchReturnRequests(orderId: string, setReturnRequests: (requests: ReturnRequest[]) => void) {
+async function fetchReturnRequests(
+  orderId: string,
+  setReturnRequests: (requests: ReturnRequest[]) => void,
+) {
   try {
     const requests = await getReturnRequests(orderId);
     setReturnRequests(requests);
@@ -49,6 +71,7 @@ async function fetchReturnRequests(orderId: string, setReturnRequests: (requests
 export function OrderDetailScreen() {
   const route = useRoute<RouteProp<CartStackParamList, 'OrderDetail'>>();
   const navigation = useNavigation<NavigationProp<CartStackParamList>>();
+  const insets = useSafeAreaInsets();
   const { orderId } = route.params;
 
   const [order, setOrder] = useState<Order | null>(null);
@@ -111,7 +134,11 @@ export function OrderDetailScreen() {
     try {
       if (order.paymentMethod === 'KHALTI') {
         const { paymentUrl } = await initiateKhalti(order._id);
-        navigation.navigate('PaymentWebView', { gateway: 'KHALTI', orderId: order._id, paymentUrl });
+        navigation.navigate('PaymentWebView', {
+          gateway: 'KHALTI',
+          orderId: order._id,
+          paymentUrl,
+        });
       } else if (order.paymentMethod === 'ESEWA') {
         const { formUrl, fields } = await initiateEsewa(order._id);
         navigation.navigate('PaymentWebView', {
@@ -130,21 +157,37 @@ export function OrderDetailScreen() {
 
   if (orderState === 'loading') {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator color={colors.brand600} size="large" />
+      <View style={[styles.flex, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+            <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+          </Pressable>
+          <Text style={typography.h1}>Order Detail</Text>
+        </View>
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.brand600} size="large" />
+        </View>
       </View>
     );
   }
 
   if (orderState === 'error' || !order) {
     return (
-      <View style={styles.center}>
-        <EmptyState
-          icon="alert-circle-outline"
-          title="Couldn't load this order"
-          actionLabel="Retry"
-          onAction={() => fetchOrder(orderId, setOrder, setOrderState)}
-        />
+      <View style={[styles.flex, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+            <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+          </Pressable>
+          <Text style={typography.h1}>Order Detail</Text>
+        </View>
+        <View style={styles.center}>
+          <EmptyState
+            icon="alert-circle-outline"
+            title="Couldn't load this order"
+            actionLabel="Retry"
+            onAction={() => fetchOrder(orderId, setOrder, setOrderState)}
+          />
+        </View>
       </View>
     );
   }
@@ -156,129 +199,174 @@ export function OrderDetailScreen() {
   const canRequestReturn = order.status === 'DELIVERED' && !activeReturnRequest;
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
-      <View style={styles.headerRow}>
+    <View style={[styles.flex, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+        </Pressable>
         <Text style={typography.h1}>Order Detail</Text>
-        <Badge kind="order" status={order.status} />
-      </View>
-      {order.trackingId ? <Text style={typography.muted}>Tracking ID: {order.trackingId}</Text> : null}
-
-      <FormError message={actionError} />
-
-      <View style={styles.section}>
-        <Text style={typography.h2}>Status</Text>
-        <OrderTimeline status={order.status} />
       </View>
 
-      <View style={styles.section}>
-        <Text style={typography.h2}>Items</Text>
-        {order.items.map((item, index) => {
-          const label = variantLabel(item);
-          return (
-            <View key={`${item.variantId}-${index}`} style={styles.itemRow}>
-              <View style={styles.itemIcon}>
-                <Ionicons name="cube-outline" size={22} color={colors.gray400} />
-              </View>
-              <View style={styles.itemInfo}>
-                <Text style={typography.body} numberOfLines={2}>
-                  {item.productName}
-                </Text>
-                {label ? <Text style={typography.muted}>{label}</Text> : null}
-                <Text style={typography.muted}>Qty: {item.quantity}</Text>
-              </View>
-              <Text style={typography.priceList}>Rs. {(item.unitPrice * item.quantity).toLocaleString()}</Text>
-            </View>
-          );
-        })}
-        <View style={styles.divider} />
-        <View style={styles.summaryRow}>
-          <Text style={typography.body}>Subtotal</Text>
-          <Text style={typography.body}>Rs. {order.subtotal.toLocaleString()}</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.statusRow}>
+          <Badge kind="order" status={order.status} />
+          {order.trackingId ? (
+            <Text style={typography.muted}>Tracking ID: {order.trackingId}</Text>
+          ) : null}
         </View>
-        {order.discountAmount > 0 ? (
-          <View style={styles.summaryRow}>
-            <Text style={typography.body}>Discount {order.couponCode ? `(${order.couponCode})` : ''}</Text>
-            <Text style={styles.discountText}>-Rs. {order.discountAmount.toLocaleString()}</Text>
-          </View>
-        ) : null}
-        <View style={styles.summaryRow}>
-          <Text style={typography.body}>Delivery Fee</Text>
-          <Text style={typography.body}>Rs. {order.deliveryFee.toLocaleString()}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={typography.h2}>Total</Text>
-          <Text style={typography.priceDetail}>Rs. {order.total.toLocaleString()}</Text>
-        </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={typography.h2}>Delivery Address</Text>
-        <Text style={typography.body}>{order.address.recipientName}</Text>
-        <Text style={typography.muted}>{order.address.phone}</Text>
-        <Text style={typography.muted}>
-          {[order.address.area, order.address.city, order.address.district, order.address.province, order.address.country]
-            .filter(Boolean)
-            .join(', ')}
-        </Text>
-      </View>
+        <FormError message={actionError} />
 
-      <View style={styles.section}>
-        <Text style={typography.h2}>Payment</Text>
-        <View style={styles.summaryRow}>
-          <Text style={typography.body}>{order.paymentMethod}</Text>
-          <Badge kind="payment" status={order.paymentStatus} />
-        </View>
-      </View>
-
-      {activeReturnRequest ? (
         <View style={styles.section}>
-          <View style={styles.headerRow}>
-            <Text style={typography.h2}>Return Request</Text>
-            <Badge kind="return" status={activeReturnRequest.status} />
-          </View>
-          {activeReturnRequest.adminNote ? <Text style={typography.muted}>{activeReturnRequest.adminNote}</Text> : null}
+          <Text style={typography.h2}>Status</Text>
+          <OrderTimeline status={order.status} />
         </View>
-      ) : null}
 
-      <View style={styles.actionsSection}>
-        <Button
-          title="Download Invoice"
-          variant="secondary"
-          onPress={handleDownloadInvoice}
-          loading={downloadingInvoice}
-        />
+        <View style={styles.section}>
+          <Text style={typography.h2}>Items</Text>
+          {order.items.map((item, index) => {
+            const label = variantLabel(item);
+            return (
+              <View key={`${item.variantId}-${index}`} style={styles.itemRow}>
+                <View style={styles.itemIcon}>
+                  <Ionicons name="cube-outline" size={22} color={colors.gray400} />
+                </View>
+                <View style={styles.itemInfo}>
+                  <Text style={typography.body} numberOfLines={2}>
+                    {item.productName}
+                  </Text>
+                  {label ? <Text style={typography.muted}>{label}</Text> : null}
+                  <Text style={typography.muted}>Qty: {item.quantity}</Text>
+                </View>
+                <Text style={typography.priceList}>
+                  Rs. {(item.unitPrice * item.quantity).toLocaleString()}
+                </Text>
+              </View>
+            );
+          })}
+          <View style={styles.divider} />
+          <View style={styles.summaryRow}>
+            <Text style={typography.body}>Subtotal</Text>
+            <Text style={typography.body}>Rs. {order.subtotal.toLocaleString()}</Text>
+          </View>
+          {order.discountAmount > 0 ? (
+            <View style={styles.summaryRow}>
+              <Text style={typography.body}>
+                Discount {order.couponCode ? `(${order.couponCode})` : ''}
+              </Text>
+              <Text style={styles.discountText}>-Rs. {order.discountAmount.toLocaleString()}</Text>
+            </View>
+          ) : null}
+          <View style={styles.summaryRow}>
+            <Text style={typography.body}>Delivery Fee</Text>
+            <Text style={typography.body}>Rs. {order.deliveryFee.toLocaleString()}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={typography.h2}>Total</Text>
+            <Text style={typography.priceDetail}>Rs. {order.total.toLocaleString()}</Text>
+          </View>
+        </View>
 
-        {canRetryPayment ? (
-          <Button
-            title={`Retry Payment (${order.paymentMethod})`}
-            onPress={handleRetryPayment}
-            loading={retryingPayment}
-          />
+        <View style={styles.section}>
+          <Text style={typography.h2}>Delivery Address</Text>
+          <Text style={typography.body}>{order.address.recipientName}</Text>
+          <Text style={typography.muted}>{order.address.phone}</Text>
+          <Text style={typography.muted}>
+            {[
+              order.address.area,
+              order.address.city,
+              order.address.district,
+              order.address.province,
+              order.address.country,
+            ]
+              .filter(Boolean)
+              .join(', ')}
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={typography.h2}>Payment</Text>
+          <View style={styles.summaryRow}>
+            <Text style={typography.body}>{order.paymentMethod}</Text>
+            <Badge kind="payment" status={order.paymentStatus} />
+          </View>
+        </View>
+
+        {activeReturnRequest ? (
+          <View style={styles.section}>
+            <View style={styles.headerRow}>
+              <Text style={typography.h2}>Return Request</Text>
+              <Badge kind="return" status={activeReturnRequest.status} />
+            </View>
+            {activeReturnRequest.adminNote ? (
+              <Text style={typography.muted}>{activeReturnRequest.adminNote}</Text>
+            ) : null}
+          </View>
         ) : null}
 
-        {canRequestReturn ? (
+        <View style={styles.actionsSection}>
           <Button
-            title="Request Return"
+            title="Download Invoice"
             variant="secondary"
-            onPress={() => navigation.navigate('ReturnRequest', { orderId: order._id })}
+            onPress={handleDownloadInvoice}
+            loading={downloadingInvoice}
           />
-        ) : null}
 
-        {canCancel ? (
-          <Button title="Cancel Order" variant="danger" onPress={handleCancel} loading={cancelling} />
-        ) : null}
-      </View>
-    </ScrollView>
+          {canRetryPayment ? (
+            <Button
+              title={`Retry Payment (${order.paymentMethod})`}
+              onPress={handleRetryPayment}
+              loading={retryingPayment}
+            />
+          ) : null}
+
+          {canRequestReturn ? (
+            <Button
+              title="Request Return"
+              variant="secondary"
+              onPress={() => navigation.navigate('ReturnRequest', { orderId: order._id })}
+            />
+          ) : null}
+
+          {canCancel ? (
+            <Button
+              title="Cancel Order"
+              variant="danger"
+              onPress={handleCancel}
+              loading={cancelling}
+            />
+          ) : null}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.white },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+  },
   container: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   section: { gap: spacing.sm },
-  itemRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', paddingVertical: spacing.xs },
+  itemRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+  },
   itemIcon: {
     width: 40,
     height: 40,
@@ -289,7 +377,12 @@ const styles = StyleSheet.create({
   },
   itemInfo: { flex: 1, gap: 2 },
   divider: { height: 1, backgroundColor: colors.gray100, marginVertical: spacing.xs },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 2 },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
   discountText: { color: colors.success700 },
   actionsSection: { gap: spacing.sm },
 });

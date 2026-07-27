@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeStackParamList, RootStackParamList } from '@/navigation/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
@@ -146,6 +147,7 @@ export function ProductDetailScreen() {
   const route = useRoute<RouteProp<HomeStackParamList, 'ProductDetail'>>();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const rootNavigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { addItem } = useCart();
   const { isWishlisted, toggleItem } = useWishlist();
@@ -336,7 +338,7 @@ export function ProductDetailScreen() {
 
   if (loadState === 'loading') {
     return (
-      <View style={styles.centerState}>
+      <View style={[styles.centerState, { paddingTop: insets.top }]}>
         <ActivityIndicator color={colors.brand600} size="large" />
       </View>
     );
@@ -344,7 +346,7 @@ export function ProductDetailScreen() {
 
   if (loadState === 'error' || !data) {
     return (
-      <View style={styles.centerState}>
+      <View style={[styles.centerState, { paddingTop: insets.top }]}>
         <EmptyState
           icon="alert-circle-outline"
           title="Couldn't load this product"
@@ -360,197 +362,214 @@ export function ProductDetailScreen() {
   const hasDiscount = resolvedPrice < variantBasePrice;
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
-      <View style={styles.galleryContainer}>
-        <FlatList
-          data={galleryImages}
-          keyExtractor={(url, i) => `${url}-${i}`}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(e) => {
-            const next = Math.round(
-              e.nativeEvent.contentOffset.x / e.nativeEvent.layoutMeasurement.width,
-            );
-            setGalleryIndex(next);
-          }}
-          renderItem={({ item }) => (
-            <Image
-              source={{ uri: cloudinaryUrl(resolveAssetUrl(item), SCREEN_WIDTH) }}
-              style={styles.galleryImage}
-              contentFit="cover"
-            />
-          )}
-          ListEmptyComponent={<View style={[styles.galleryImage, styles.galleryPlaceholder]} />}
-        />
-        {galleryImages.length > 1 ? (
-          <View style={styles.dots}>
-            {galleryImages.map((_, i) => (
-              <View key={i} style={[styles.dot, i === galleryIndex && styles.dotActive]} />
-            ))}
-          </View>
-        ) : null}
-      </View>
-
-      <View style={styles.infoSection}>
-        <View style={styles.nameRow}>
-          <Text style={[typography.h1, styles.name]}>{product.name}</Text>
-          <WishlistButton active={isWishlisted(product._id)} onPress={() => toggleItem(product)} size={26} />
-        </View>
-
-        <View style={styles.priceRow}>
-          <Text style={typography.priceDetail}>Rs. {resolvedPrice.toLocaleString()}</Text>
-          {hasDiscount ? (
-            <Text style={styles.strikePrice}>Rs. {variantBasePrice.toLocaleString()}</Text>
+    <View style={[styles.flex, { paddingTop: insets.top }]}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        <View style={styles.galleryContainer}>
+          <FlatList
+            data={galleryImages}
+            keyExtractor={(url, i) => `${url}-${i}`}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={(e) => {
+              const next = Math.round(
+                e.nativeEvent.contentOffset.x / e.nativeEvent.layoutMeasurement.width,
+              );
+              setGalleryIndex(next);
+            }}
+            renderItem={({ item }) => (
+              <Image
+                source={{ uri: cloudinaryUrl(resolveAssetUrl(item), SCREEN_WIDTH) }}
+                style={styles.galleryImage}
+                contentFit="cover"
+              />
+            )}
+            ListEmptyComponent={<View style={[styles.galleryImage, styles.galleryPlaceholder]} />}
+          />
+          {galleryImages.length > 1 ? (
+            <View style={styles.dots}>
+              {galleryImages.map((_, i) => (
+                <View key={i} style={[styles.dot, i === galleryIndex && styles.dotActive]} />
+              ))}
+            </View>
           ) : null}
         </View>
 
-        {product.reviewCount > 0 ? (
-          <View style={styles.ratingRow}>
-            <StarRating rating={product.averageRating ?? 0} size={14} />
-            <Text style={typography.muted}>({product.reviewCount})</Text>
+        <View style={styles.infoSection}>
+          <View style={styles.nameRow}>
+            <Text style={[typography.h1, styles.name]}>{product.name}</Text>
+            <WishlistButton
+              active={isWishlisted(product._id)}
+              onPress={() => toggleItem(product)}
+              size={26}
+            />
           </View>
+
+          <View style={styles.priceRow}>
+            <Text style={typography.priceDetail}>Rs. {resolvedPrice.toLocaleString()}</Text>
+            {hasDiscount ? (
+              <Text style={styles.strikePrice}>Rs. {variantBasePrice.toLocaleString()}</Text>
+            ) : null}
+          </View>
+
+          {product.reviewCount > 0 ? (
+            <View style={styles.ratingRow}>
+              <StarRating rating={product.averageRating ?? 0} size={14} />
+              <Text style={typography.muted}>({product.reviewCount})</Text>
+            </View>
+          ) : null}
+
+          <VariantPicker
+            variants={variants}
+            selectedSize={selectedSize}
+            selectedColor={selectedColor}
+            onSelectSize={setSelectedSize}
+            onSelectColor={setSelectedColor}
+          />
+
+          {resolvedVariant ? (
+            resolvedVariant.stockQuantity > 0 ? (
+              <>
+                <Text style={typography.muted}>{resolvedVariant.stockQuantity} in stock</Text>
+                <QuantityStepper
+                  quantity={quantity}
+                  onChange={setQuantity}
+                  max={resolvedVariant.stockQuantity}
+                />
+                <FormError message={addToCartError} />
+                <Button title="Add to Cart" onPress={handleAddToCart} loading={addingToCart} />
+              </>
+            ) : (
+              <Button
+                title="Notify Me When Available"
+                variant="secondary"
+                onPress={handleNotifyMe}
+              />
+            )
+          ) : (
+            <Text style={typography.muted}>Select options to see stock and price.</Text>
+          )}
+        </View>
+
+        <View style={styles.tabBar}>
+          {(['description', 'info', 'shipping'] as const).map((tab) => (
+            <Pressable
+              key={tab}
+              style={[styles.tabBtn, activeTab === tab && styles.tabBtnActive]}
+              onPress={() => setActiveTab(tab)}
+            >
+              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                {tab === 'description'
+                  ? 'Description'
+                  : tab === 'info'
+                    ? 'Additional Info'
+                    : 'Shipping'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          {activeTab === 'description' ? (
+            <Text style={typography.body}>
+              {stripHtml(product.description || product.shortDescription || '')}
+            </Text>
+          ) : activeTab === 'info' ? (
+            product.additionalInformation && product.additionalInformation.length > 0 ? (
+              product.additionalInformation.map((row, i) => (
+                <View key={i} style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>{row.label}</Text>
+                  <Text style={styles.infoValue}>{row.value}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={typography.muted}>No additional information.</Text>
+            )
+          ) : (
+            <View style={styles.shippingInfo}>
+              {product.weight ? (
+                <Text style={typography.body}>Weight: {product.weight} kg</Text>
+              ) : null}
+              <Text style={typography.body}>
+                Delivery fee is calculated at checkout based on your address. Cash on Delivery,
+                Khalti, and eSewa are supported.
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={typography.h2}>
+            Reviews{product.reviewCount > 0 ? ` (${product.reviewCount})` : ''}
+          </Text>
+          {reviewsState === 'error' ? (
+            <EmptyState
+              icon="alert-circle-outline"
+              title="Couldn't load reviews"
+              actionLabel="Retry"
+              onAction={() => handleReviewsPageChange(reviewsPage)}
+            />
+          ) : reviewsState === 'loading' ? (
+            <ActivityIndicator color={colors.brand600} />
+          ) : (
+            <ReviewList
+              reviews={reviews}
+              page={reviewsPage}
+              pages={reviewsPages}
+              onPageChange={handleReviewsPageChange}
+            />
+          )}
+
+          {user ? (
+            eligibility?.hasPurchased ? (
+              <ReviewForm
+                existingReview={eligibility.alreadyReviewed ? eligibility.existingReview : null}
+                onSubmit={handleSubmitReview}
+              />
+            ) : (
+              <Text style={typography.muted}>Purchase this product to leave a review.</Text>
+            )
+          ) : (
+            <Text style={typography.muted}>
+              Log in and purchase this product to leave a review.
+            </Text>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={typography.h2}>Questions & Answers</Text>
+          {questionsState === 'error' ? (
+            <EmptyState
+              icon="alert-circle-outline"
+              title="Couldn't load questions"
+              actionLabel="Retry"
+              onAction={retryQuestions}
+            />
+          ) : questionsState === 'loading' ? (
+            <ActivityIndicator color={colors.brand600} />
+          ) : (
+            <QuestionList questions={questions} />
+          )}
+          <QuestionForm onSubmit={handleSubmitQuestion} />
+        </View>
+
+        {relatedProducts.length > 0 ? (
+          <ProductRail
+            title="Related Products"
+            products={relatedProducts}
+            onPressProduct={handlePressRelated}
+          />
         ) : null}
 
-        <VariantPicker
-          variants={variants}
-          selectedSize={selectedSize}
-          selectedColor={selectedColor}
-          onSelectSize={setSelectedSize}
-          onSelectColor={setSelectedColor}
-        />
-
-        {resolvedVariant ? (
-          resolvedVariant.stockQuantity > 0 ? (
-            <>
-              <Text style={typography.muted}>{resolvedVariant.stockQuantity} in stock</Text>
-              <QuantityStepper quantity={quantity} onChange={setQuantity} max={resolvedVariant.stockQuantity} />
-              <FormError message={addToCartError} />
-              <Button title="Add to Cart" onPress={handleAddToCart} loading={addingToCart} />
-            </>
-          ) : (
-            <Button title="Notify Me When Available" variant="secondary" onPress={handleNotifyMe} />
-          )
-        ) : (
-          <Text style={typography.muted}>Select options to see stock and price.</Text>
-        )}
-      </View>
-
-      <View style={styles.tabBar}>
-        {(['description', 'info', 'shipping'] as const).map((tab) => (
-          <Pressable
-            key={tab}
-            style={[styles.tabBtn, activeTab === tab && styles.tabBtnActive]}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab === 'description'
-                ? 'Description'
-                : tab === 'info'
-                  ? 'Additional Info'
-                  : 'Shipping'}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-
-      <View style={styles.section}>
-        {activeTab === 'description' ? (
-          <Text style={typography.body}>
-            {stripHtml(product.description || product.shortDescription || '')}
-          </Text>
-        ) : activeTab === 'info' ? (
-          product.additionalInformation && product.additionalInformation.length > 0 ? (
-            product.additionalInformation.map((row, i) => (
-              <View key={i} style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{row.label}</Text>
-                <Text style={styles.infoValue}>{row.value}</Text>
-              </View>
-            ))
-          ) : (
-            <Text style={typography.muted}>No additional information.</Text>
-          )
-        ) : (
-          <View style={styles.shippingInfo}>
-            {product.weight ? (
-              <Text style={typography.body}>Weight: {product.weight} kg</Text>
-            ) : null}
-            <Text style={typography.body}>
-              Delivery fee is calculated at checkout based on your address. Cash on Delivery,
-              Khalti, and eSewa are supported.
-            </Text>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={typography.h2}>
-          Reviews{product.reviewCount > 0 ? ` (${product.reviewCount})` : ''}
-        </Text>
-        {reviewsState === 'error' ? (
-          <EmptyState
-            icon="alert-circle-outline"
-            title="Couldn't load reviews"
-            actionLabel="Retry"
-            onAction={() => handleReviewsPageChange(reviewsPage)}
-          />
-        ) : reviewsState === 'loading' ? (
-          <ActivityIndicator color={colors.brand600} />
-        ) : (
-          <ReviewList
-            reviews={reviews}
-            page={reviewsPage}
-            pages={reviewsPages}
-            onPageChange={handleReviewsPageChange}
-          />
-        )}
-
-        {user ? (
-          eligibility?.hasPurchased ? (
-            <ReviewForm
-              existingReview={eligibility.alreadyReviewed ? eligibility.existingReview : null}
-              onSubmit={handleSubmitReview}
-            />
-          ) : (
-            <Text style={typography.muted}>Purchase this product to leave a review.</Text>
-          )
-        ) : (
-          <Text style={typography.muted}>Log in and purchase this product to leave a review.</Text>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={typography.h2}>Questions & Answers</Text>
-        {questionsState === 'error' ? (
-          <EmptyState
-            icon="alert-circle-outline"
-            title="Couldn't load questions"
-            actionLabel="Retry"
-            onAction={retryQuestions}
-          />
-        ) : questionsState === 'loading' ? (
-          <ActivityIndicator color={colors.brand600} />
-        ) : (
-          <QuestionList questions={questions} />
-        )}
-        <QuestionForm onSubmit={handleSubmitQuestion} />
-      </View>
-
-      {relatedProducts.length > 0 ? (
-        <ProductRail
-          title="Related Products"
-          products={relatedProducts}
-          onPressProduct={handlePressRelated}
-        />
-      ) : null}
-
-      <RecentlyViewedRail excludeSlug={productSlug} onPressProduct={handlePressRelated} />
-    </ScrollView>
+        <RecentlyViewedRail excludeSlug={productSlug} onPressProduct={handlePressRelated} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
+  scroll: { flex: 1 },
   content: { paddingBottom: spacing.xxl, gap: spacing.lg },
   centerState: {
     flex: 1,

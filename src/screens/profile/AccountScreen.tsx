@@ -1,7 +1,17 @@
 import { useCallback } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccountStackParamList, MainTabParamList, RootStackParamList } from '@/navigation/types';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/Avatar';
@@ -23,7 +33,14 @@ import { colors, spacing, typography } from '@/theme';
 export function AccountScreen() {
   const navigation = useNavigation<NavigationProp<AccountStackParamList>>();
   const rootNavigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
+
+  const handleBack = useCallback(() => {
+    navigation
+      .getParent<NavigationProp<MainTabParamList>>()
+      ?.navigate('HomeTab', { screen: 'Home' });
+  }, [navigation]);
 
   const handleLogout = useCallback(() => {
     Alert.alert('Log out', 'Are you sure you want to log out?', [
@@ -35,24 +52,38 @@ export function AccountScreen() {
           await logout();
           // Never leave the user stranded on a now-inaccessible protected
           // screen — land back on a public, guest-usable screen.
-          navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('HomeTab', { screen: 'Home' });
+          navigation
+            .getParent<NavigationProp<MainTabParamList>>()
+            ?.navigate('HomeTab', { screen: 'Home' });
         },
       },
     ]);
   }, [logout, navigation]);
 
   const handleWishlist = useCallback(() => {
-    navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('WishlistTab', { screen: 'WishlistRoot' });
+    navigation
+      .getParent<NavigationProp<MainTabParamList>>()
+      ?.navigate('WishlistTab', { screen: 'WishlistRoot' });
   }, [navigation]);
 
   if (!user) {
     return (
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.authContainer} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.authContainer}
+          keyboardShouldPersistTaps="handled"
+        >
           <LoginForm
-            onForgotPassword={() => rootNavigation.navigate('AuthModal', { screen: 'ForgotPassword' })}
+            onForgotPassword={() =>
+              rootNavigation.navigate('AuthModal', { screen: 'ForgotPassword' })
+            }
             onOtpLogin={() => rootNavigation.navigate('AuthModal', { screen: 'OtpLogin' })}
-            onGoogleAuth={() => rootNavigation.navigate('AuthModal', { screen: 'GoogleAuthWebView' })}
+            onGoogleAuth={() =>
+              rootNavigation.navigate('AuthModal', { screen: 'GoogleAuthWebView' })
+            }
             onSignup={() => rootNavigation.navigate('AuthModal', { screen: 'Signup' })}
           />
         </ScrollView>
@@ -61,37 +92,65 @@ export function AccountScreen() {
   }
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
-      <Pressable style={styles.header} onPress={() => navigation.navigate('EditProfile')}>
-        <Avatar uri={user.avatarUrl} name={user.name} size={64} />
-        <View style={styles.headerText}>
-          <Text style={typography.h2}>{user.name}</Text>
-          <Text style={typography.muted}>{user.email}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
-      </Pressable>
-
-      <View style={styles.menu}>
-        <AccountMenuItem icon="receipt-outline" label="Orders" onPress={() => navigation.navigate('OrdersList')} />
-        <AccountMenuItem icon="location-outline" label="Addresses" onPress={() => navigation.navigate('AddressList')} />
-        <AccountMenuItem icon="heart-outline" label="Wishlist" onPress={handleWishlist} />
-        <AccountMenuItem
-          icon="lock-closed-outline"
-          label="Change Password"
-          onPress={() => navigation.navigate('ChangePassword')}
-        />
-        <AccountMenuItem icon="document-text-outline" label="Terms & Legal" onPress={() => navigation.navigate('Terms')} />
-        <AccountMenuItem icon="log-out-outline" label="Logout" onPress={handleLogout} danger />
+    <View style={[styles.flex, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <Pressable onPress={handleBack} hitSlop={8}>
+          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+        </Pressable>
+        <Text style={typography.h1}>Account</Text>
       </View>
-    </ScrollView>
+
+      <ScrollView contentContainerStyle={styles.container}>
+        <Pressable style={styles.profileRow} onPress={() => navigation.navigate('EditProfile')}>
+          <Avatar uri={user.avatarUrl} name={user.name} size={64} />
+          <View style={styles.profileText}>
+            <Text style={typography.h2}>{user.name}</Text>
+            <Text style={typography.muted}>{user.email}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
+        </Pressable>
+
+        <View style={styles.menu}>
+          <AccountMenuItem
+            icon="receipt-outline"
+            label="Orders"
+            onPress={() => navigation.navigate('OrdersList')}
+          />
+          <AccountMenuItem
+            icon="location-outline"
+            label="Addresses"
+            onPress={() => navigation.navigate('AddressList')}
+          />
+          <AccountMenuItem icon="heart-outline" label="Wishlist" onPress={handleWishlist} />
+          <AccountMenuItem
+            icon="lock-closed-outline"
+            label="Change Password"
+            onPress={() => navigation.navigate('ChangePassword')}
+          />
+          <AccountMenuItem
+            icon="document-text-outline"
+            label="Terms & Legal"
+            onPress={() => navigation.navigate('Terms')}
+          />
+          <AccountMenuItem icon="log-out-outline" label="Logout" onPress={handleLogout} danger />
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
   container: { paddingBottom: spacing.xxl },
   authContainer: { flexGrow: 1, justifyContent: 'center', padding: spacing.xl },
-  header: {
+  profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
@@ -99,6 +158,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.gray100,
   },
-  headerText: { flex: 1, gap: 2 },
+  profileText: { flex: 1, gap: 2 },
   menu: { paddingHorizontal: spacing.lg },
 });

@@ -2,6 +2,8 @@ import { Dispatch, SetStateAction, useCallback, useMemo, useState } from 'react'
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CartStackParamList } from '@/navigation/types';
 import { useCart } from '@/hooks/useCart';
 import { getAddresses } from '@/api/addresses';
@@ -39,7 +41,11 @@ async function fetchAddresses(
   }
 }
 
-async function fetchDeliveryFee(address: Address | undefined, setFee: (fee: number | null) => void, setState: (state: FetchState) => void) {
+async function fetchDeliveryFee(
+  address: Address | undefined,
+  setFee: (fee: number | null) => void,
+  setState: (state: FetchState) => void,
+) {
   if (!address) {
     setFee(null);
     setState('ready');
@@ -78,6 +84,7 @@ async function fetchDeliveryFee(address: Address | undefined, setFee: (fee: numb
  */
 export function CheckoutScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<CartStackParamList>>();
+  const insets = useSafeAreaInsets();
   const cart = useCart();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -155,120 +162,167 @@ export function CheckoutScreen() {
 
   if (cart.items.length === 0 && !placingOrder) {
     return (
-      <View style={styles.center}>
-        <EmptyState icon="cart-outline" title="Your cart is empty" message="Add items to your cart before checking out." />
+      <View style={[styles.flex, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+            <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+          </Pressable>
+          <Text style={typography.h1}>Checkout</Text>
+        </View>
+        <View style={styles.center}>
+          <EmptyState
+            icon="cart-outline"
+            title="Your cart is empty"
+            message="Add items to your cart before checking out."
+          />
+        </View>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
-      <Text style={typography.h1}>Checkout</Text>
+    <View style={[styles.flex, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+        </Pressable>
+        <Text style={typography.h1}>Checkout</Text>
+      </View>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={typography.h2}>Delivery Address</Text>
-          <Pressable onPress={() => navigation.navigate('AddressList')}>
-            <Text style={styles.linkText}>Manage</Text>
-          </Pressable>
-        </View>
-
-        {addressesState === 'loading' ? (
-          <ActivityIndicator color={colors.brand600} />
-        ) : addressesState === 'error' ? (
-          <Text style={styles.errorText}>Couldn&apos;t load addresses.</Text>
-        ) : addresses.length === 0 ? (
-          <Button
-            title="+ Add a delivery address"
-            variant="secondary"
-            onPress={() => navigation.navigate('AddressForm', undefined)}
-          />
-        ) : (
-          <View style={{ gap: spacing.sm }}>
-            {addresses.map((address) => (
-              <AddressCard
-                key={address._id}
-                address={address}
-                selected={address._id === selectedAddressId}
-                onPress={() => setSelectedAddressId(address._id)}
-              />
-            ))}
-            <Pressable onPress={() => navigation.navigate('AddressForm', undefined)}>
-              <Text style={styles.linkText}>+ Add new address</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={typography.h2}>Delivery Address</Text>
+            <Pressable onPress={() => navigation.navigate('AddressList')}>
+              <Text style={styles.linkText}>Manage</Text>
             </Pressable>
           </View>
-        )}
-      </View>
 
-      <View style={styles.section}>
-        <Text style={typography.h2}>Coupon</Text>
-        <CouponInput onApplied={setCouponResult} />
-        {couponResult && !couponStale ? (
-          <Text style={styles.couponApplied}>
-            Applied &quot;{couponResult.code}&quot; — Rs. {couponResult.discountAmount.toLocaleString()} off
-          </Text>
-        ) : null}
-        {couponStale ? (
-          <Text style={styles.couponStale}>Your cart changed since applying this coupon — please re-apply it.</Text>
-        ) : null}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={typography.h2}>Payment Method</Text>
-        <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} isInternational={isInternational} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={typography.h2}>Order Summary</Text>
-        {cart.items.map((item) => {
-          const variant = item.variantId;
-          const product = variant.productId;
-          const price = getDiscountedPrice(variant.price ?? product.basePrice, product.discountType, product.discountValue);
-          return (
-            <View key={variant._id} style={styles.summaryRow}>
-              <Text style={typography.body} numberOfLines={1}>
-                {product.name} x{item.quantity}
-              </Text>
-              <Text style={typography.body}>Rs. {(price * item.quantity).toLocaleString()}</Text>
-            </View>
-          );
-        })}
-        <View style={styles.divider} />
-        <View style={styles.summaryRow}>
-          <Text style={typography.body}>Subtotal</Text>
-          <Text style={typography.body}>Rs. {cart.subtotal.toLocaleString()}</Text>
-        </View>
-        {effectiveDiscount > 0 ? (
-          <View style={styles.summaryRow}>
-            <Text style={typography.body}>Discount</Text>
-            <Text style={styles.discountText}>-Rs. {effectiveDiscount.toLocaleString()}</Text>
-          </View>
-        ) : null}
-        <View style={styles.summaryRow}>
-          <Text style={typography.body}>Delivery Fee</Text>
-          {feeState === 'loading' ? (
-            <ActivityIndicator size="small" color={colors.brand600} />
+          {addressesState === 'loading' ? (
+            <ActivityIndicator color={colors.brand600} />
+          ) : addressesState === 'error' ? (
+            <Text style={styles.errorText}>Couldn&apos;t load addresses.</Text>
+          ) : addresses.length === 0 ? (
+            <Button
+              title="+ Add a delivery address"
+              variant="secondary"
+              onPress={() => navigation.navigate('AddressForm', undefined)}
+            />
           ) : (
-            <Text style={typography.body}>Rs. {(deliveryFee ?? 0).toLocaleString()}</Text>
+            <View style={{ gap: spacing.sm }}>
+              {addresses.map((address) => (
+                <AddressCard
+                  key={address._id}
+                  address={address}
+                  selected={address._id === selectedAddressId}
+                  onPress={() => setSelectedAddressId(address._id)}
+                />
+              ))}
+              <Pressable onPress={() => navigation.navigate('AddressForm', undefined)}>
+                <Text style={styles.linkText}>+ Add new address</Text>
+              </Pressable>
+            </View>
           )}
         </View>
-        <View style={styles.divider} />
-        <View style={styles.summaryRow}>
-          <Text style={typography.h2}>Total</Text>
-          <Text style={typography.priceDetail}>Rs. {grandTotal.toLocaleString()}</Text>
+
+        <View style={styles.section}>
+          <Text style={typography.h2}>Coupon</Text>
+          <CouponInput onApplied={setCouponResult} />
+          {couponResult && !couponStale ? (
+            <Text style={styles.couponApplied}>
+              Applied &quot;{couponResult.code}&quot; — Rs.{' '}
+              {couponResult.discountAmount.toLocaleString()} off
+            </Text>
+          ) : null}
+          {couponStale ? (
+            <Text style={styles.couponStale}>
+              Your cart changed since applying this coupon — please re-apply it.
+            </Text>
+          ) : null}
         </View>
-      </View>
 
-      <FormError message={placeOrderError} />
+        <View style={styles.section}>
+          <Text style={typography.h2}>Payment Method</Text>
+          <PaymentMethodPicker
+            value={paymentMethod}
+            onChange={setPaymentMethod}
+            isInternational={isInternational}
+          />
+        </View>
 
-      <Button title="Place Order" onPress={handlePlaceOrder} loading={placingOrder} disabled={!selectedAddress} />
-    </ScrollView>
+        <View style={styles.section}>
+          <Text style={typography.h2}>Order Summary</Text>
+          {cart.items.map((item) => {
+            const variant = item.variantId;
+            const product = variant.productId;
+            const price = getDiscountedPrice(
+              variant.price ?? product.basePrice,
+              product.discountType,
+              product.discountValue,
+            );
+            return (
+              <View key={variant._id} style={styles.summaryRow}>
+                <Text style={typography.body} numberOfLines={1}>
+                  {product.name} x{item.quantity}
+                </Text>
+                <Text style={typography.body}>Rs. {(price * item.quantity).toLocaleString()}</Text>
+              </View>
+            );
+          })}
+          <View style={styles.divider} />
+          <View style={styles.summaryRow}>
+            <Text style={typography.body}>Subtotal</Text>
+            <Text style={typography.body}>Rs. {cart.subtotal.toLocaleString()}</Text>
+          </View>
+          {effectiveDiscount > 0 ? (
+            <View style={styles.summaryRow}>
+              <Text style={typography.body}>Discount</Text>
+              <Text style={styles.discountText}>-Rs. {effectiveDiscount.toLocaleString()}</Text>
+            </View>
+          ) : null}
+          <View style={styles.summaryRow}>
+            <Text style={typography.body}>Delivery Fee</Text>
+            {feeState === 'loading' ? (
+              <ActivityIndicator size="small" color={colors.brand600} />
+            ) : (
+              <Text style={typography.body}>Rs. {(deliveryFee ?? 0).toLocaleString()}</Text>
+            )}
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.summaryRow}>
+            <Text style={typography.h2}>Total</Text>
+            <Text style={typography.priceDetail}>Rs. {grandTotal.toLocaleString()}</Text>
+          </View>
+        </View>
+
+        <FormError message={placeOrderError} />
+
+        <Button
+          title="Place Order"
+          onPress={handlePlaceOrder}
+          loading={placingOrder}
+          disabled={!selectedAddress}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.white },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+  },
   container: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
   section: { gap: spacing.sm },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -276,7 +330,12 @@ const styles = StyleSheet.create({
   errorText: { color: colors.danger600, fontSize: 13 },
   couponApplied: { color: colors.success700, fontSize: 13 },
   couponStale: { color: colors.warning700, fontSize: 13 },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 2 },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
   discountText: { color: colors.success700 },
   divider: { height: 1, backgroundColor: colors.gray100, marginVertical: spacing.xs },
 });

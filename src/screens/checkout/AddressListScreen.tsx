@@ -1,6 +1,16 @@
 import { useCallback, useState } from 'react';
 import { NavigationProp, useFocusEffect, useNavigation } from '@react-navigation/native';
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CartStackParamList } from '@/navigation/types';
 import { deleteAddress, getAddresses, setDefaultAddress } from '@/api/addresses';
 import { AddressCard } from '@/components/AddressCard';
@@ -13,6 +23,7 @@ type FetchState = 'loading' | 'ready' | 'error';
 
 export function AddressListScreen() {
   const navigation = useNavigation<NavigationProp<CartStackParamList>>();
+  const insets = useSafeAreaInsets();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [state, setState] = useState<FetchState>('loading');
   const [error, setError] = useState<string | null>(null);
@@ -68,24 +79,47 @@ export function AddressListScreen() {
 
   if (state === 'loading') {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator color={colors.brand600} size="large" />
+      <View style={[styles.flex, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+            <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+          </Pressable>
+          <Text style={typography.h1}>Address Book</Text>
+        </View>
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.brand600} size="large" />
+        </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.flex}>
+    <View style={[styles.flex, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+        </Pressable>
+        <Text style={typography.h1}>Address Book</Text>
+      </View>
+
       <FlatList
         data={addresses}
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.list}
-        ListHeaderComponent={<Text style={[typography.h1, styles.title]}>Address Book</Text>}
         ListEmptyComponent={
           state === 'error' ? (
-            <EmptyState icon="alert-circle-outline" title="Couldn't load addresses" actionLabel="Retry" onAction={load} />
+            <EmptyState
+              icon="alert-circle-outline"
+              title="Couldn't load addresses"
+              actionLabel="Retry"
+              onAction={load}
+            />
           ) : (
-            <EmptyState icon="location-outline" title="No addresses yet" message="Add an address to speed up checkout." />
+            <EmptyState
+              icon="location-outline"
+              title="No addresses yet"
+              message="Add an address to speed up checkout."
+            />
           )
         }
         renderItem={({ item }) => (
@@ -106,7 +140,11 @@ export function AddressListScreen() {
       ) : null}
 
       <View style={styles.footer}>
-        <Button title="+ Add New Address" variant="secondary" onPress={() => navigation.navigate('AddressForm', undefined)} />
+        <Button
+          title="+ Add New Address"
+          variant="secondary"
+          onPress={() => navigation.navigate('AddressForm', undefined)}
+        />
       </View>
     </View>
   );
@@ -114,9 +152,20 @@ export function AddressListScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.white },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+  },
   list: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  title: { marginBottom: spacing.md },
   errorBannerWrap: { marginHorizontal: spacing.lg, marginBottom: spacing.sm },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.gray100 },
 });

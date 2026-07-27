@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccountStackParamList } from '@/navigation/types';
 import { changePassword } from '@/api/auth';
 import { isValidPassword } from '@/utils/validators';
@@ -17,6 +27,7 @@ import { colors, spacing, typography } from '@/theme';
  */
 export function ChangePasswordScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AccountStackParamList>>();
+  const insets = useSafeAreaInsets();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -39,7 +50,8 @@ export function ChangePasswordScreen() {
     setFieldErrors({});
 
     const nextFieldErrors: Record<string, string> = {};
-    if (!isValidPassword(newPassword)) nextFieldErrors.newPassword = 'Password must be at least 8 characters';
+    if (!isValidPassword(newPassword))
+      nextFieldErrors.newPassword = 'Password must be at least 8 characters';
     if (confirmPassword !== newPassword) nextFieldErrors.confirmPassword = "Passwords don't match";
     if (Object.keys(nextFieldErrors).length > 0) {
       setFieldErrors(nextFieldErrors);
@@ -66,10 +78,18 @@ export function ChangePasswordScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={[styles.flex, { paddingTop: insets.top }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+        </Pressable>
         <Text style={typography.h1}>Change Password</Text>
+      </View>
 
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <FormError message={formError} />
 
         <Input
@@ -102,7 +122,12 @@ export function ChangePasswordScreen() {
           placeholder="••••••••"
         />
 
-        <Button title="Update Password" onPress={handleSubmit} loading={submitting} style={styles.submitBtn} />
+        <Button
+          title="Update Password"
+          onPress={handleSubmit}
+          loading={submitting}
+          style={styles.submitBtn}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -110,6 +135,13 @@ export function ChangePasswordScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.white },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
   container: { padding: spacing.xl, gap: spacing.md, backgroundColor: colors.white },
   submitBtn: { marginTop: spacing.md },
 });
