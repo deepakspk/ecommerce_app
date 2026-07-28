@@ -150,7 +150,7 @@ export function AddressFormScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.flex, { paddingTop: insets.top }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
