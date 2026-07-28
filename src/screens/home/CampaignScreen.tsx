@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
-  headerBlock: { gap: spacing.sm, paddingBottom: spacing.md },
+  headerBlock: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   banner: {
     width: '100%',
     aspectRatio: 2,

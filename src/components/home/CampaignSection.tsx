@@ -1,10 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { Campaign } from '@/types/campaign';
 import { useThemeSettings } from '@/hooks/useThemeSettings';
-import { cloudinaryUrl } from '@/utils/cloudinary';
-import { resolveAssetUrl } from '@/utils/assetUrl';
 import { CountdownTimer } from './CountdownTimer';
 import { ProductCardRail, RAIL_CARD_WIDTH } from './ProductCardRail';
 import { colors, radius, spacing } from '@/theme';
@@ -54,17 +51,6 @@ export function CampaignSection({ campaign, onPressProduct, onPressViewAll, onEx
   return (
     <View style={[styles.card, { backgroundColor: tint(themeColor, '0d') }]}>
       <View style={styles.headerRow}>
-        {campaign.actionImageUrl ? (
-          <Image
-            source={{ uri: cloudinaryUrl(resolveAssetUrl(campaign.actionImageUrl), 120) }}
-            style={styles.actionImage}
-            contentFit="cover"
-          />
-        ) : (
-          <View style={[styles.actionFallback, { backgroundColor: tint(themeColor, '1a') }]}>
-            <Ionicons name="time-outline" size={24} color={themeColor} />
-          </View>
-        )}
         <View style={styles.titleCol}>
           <View style={styles.titleRow}>
             <Text style={styles.name} numberOfLines={1}>
@@ -115,14 +101,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     paddingHorizontal: spacing.lg,
-  },
-  actionImage: { width: 48, height: 48, borderRadius: 16, backgroundColor: colors.gray100 },
-  actionFallback: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   titleCol: { flex: 1, gap: 2 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
